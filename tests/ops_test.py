@@ -94,6 +94,19 @@ class OpsTests(unittest.TestCase):
         wait_ready()
         self.assertTrue(admin_login_works(), "Després de recrear el contenidor l'admin ja no entra: dades perdudes")
 
+    def test_sigterm_shuts_down_gracefully_within_30_seconds(self) -> None:
+        import time
+        t0 = time.time()
+        sh("docker", "stop", "-t", "30", f"{PROJECT}-app-1")
+        elapsed = time.time() - t0
+        info = sh("docker", "inspect", "-f", "{{.State.ExitCode}}", f"{PROJECT}-app-1").stdout.strip()
+        logs = sh("docker", "logs", f"{PROJECT}-app-1", check=False)
+        sh(*COMPOSE, "up", "-d", "--no-deps", "app")
+        wait_ready()
+        self.assertLess(elapsed, 30, "L'aturada ha trigat massa (SIGKILL?)")
+        self.assertEqual(info, "0", "Sortida no neta")
+        self.assertIn("Aturada completada", logs.stdout + logs.stderr)
+
     def _secrets_volume(self, name: str, files: dict[str, str], mode: str) -> str:
         vol = f"webssh-ops-{name}"
         sh("docker", "volume", "rm", "-f", vol, check=False)

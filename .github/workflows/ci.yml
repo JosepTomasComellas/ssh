@@ -24,3 +24,19 @@ jobs:
               echo 'ERROR: scaffold was incorrectly accepted'; exit 1
             fi
           fi
+  app:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: dotnet --version
+      - run: dotnet build -c Release --nologo -v q
+      - run: dotnet format --verify-no-changes --no-restore
+      - name: Vulnerable dependencies
+        run: |
+          out="$(dotnet list src/WebSshTerminal package --vulnerable --include-transitive 2>&1)"
+          echo "$out"
+          echo "$out" | grep -q "has no vulnerable packages"
+      - name: Tests (the OpenSSH and tmux fixture runs in Docker)
+        run: dotnet test -c Release --nologo -v q
