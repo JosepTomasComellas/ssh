@@ -10,6 +10,7 @@
   "verify_signed_tags": false,
   "ssh_host": "ssh-server.example.com",
   "ssh_port": 22,
-  "timezone": "Europe/Madrid"
+  "timezone": "Europe/Madrid",
+  "require_mfa": true
 }
 

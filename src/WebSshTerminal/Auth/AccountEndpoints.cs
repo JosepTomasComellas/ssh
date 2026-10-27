@@ -31,6 +31,7 @@ public static class AccountEndpoints
             var result = await signIn.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: true);
             AppMetrics.Logins.WithLabels(result.Succeeded ? "ok" : result.IsLockedOut ? "locked" : "failed").Inc();
             if (result.IsLockedOut) Log.LockedOut(logger);
+            if (result.RequiresTwoFactor) return Results.Redirect("/login/2fa"); // 2n pas amb TOTP
             if (!result.Succeeded) return Results.Redirect("/login?error=1");
 
             if (user.MustChangePassword) return Results.Redirect("/password");

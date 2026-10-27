@@ -12,7 +12,7 @@ with tempfile.TemporaryDirectory() as temp:
                TRAEFIK_RESOLVER="letsencrypt", TRUSTED_PROXIES="172.30.50.1",
                BACKEND_SUBNET="172.30.50.0/24", DATA_DIR=temp, SECRETS_DIR=temp,
                SOURCE_URL="https://github.com/JosepTomasComellas/ssh/tree/" + "b" * 40,
-               SSH_HOST="ssh-server.example.com", SSH_PORT="22", TZ="Europe/Madrid")
+               SSH_HOST="ssh-server.example.com", SSH_PORT="22", TZ="Europe/Madrid", REQUIRE_MFA="true")
     for proxy in ("nginx", "traefik"):
         raw = subprocess.check_output(["docker", "compose", "--project-name", "webssh-test",
                                       "-f", str(root / "deploy/compose.yaml"),
@@ -26,6 +26,7 @@ with tempfile.TemporaryDirectory() as temp:
         env_vars = app["environment"]
         assert env_vars["WebSsh__MetricsTokenFile"] == "/run/secrets/metrics_token"  # mètriques sempre amb token
         assert env_vars["WebSsh__SshHost"] == "ssh-server.example.com" and env_vars["TZ"] == "Europe/Madrid"
+        assert env_vars["WebSsh__RequireMfa"] == "true"
         assert not any(p.get("target") == 9091 for p in app.get("ports", []))  # gestió: mai publicat
         assert "--healthcheck" in app["healthcheck"]["test"]
         if proxy == "nginx":

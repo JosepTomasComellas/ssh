@@ -122,12 +122,24 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
+// Política RequireMfa: fins que l'usuari activi MFA només pot accedir a la pàgina per fer-ho.
+app.Use(async (ctx, next) =>
+{
+    if (ctx.User.HasClaim(AuthSetup.MfaPendingClaim, "1") && !IsAllowedWhileChangingPassword(ctx.Request.Path))
+    {
+        ctx.Response.Redirect("/account/mfa");
+        return;
+    }
+    await next();
+});
+
 app.UseAntiforgery();
 
 app.MapGet("/health/live", () => Results.Text("""{"status":"ok"}""", "application/json")).AllowAnonymous();
 app.MapGet("/health/ready", () => Results.Text($$"""{"status":"ok","revision":"{{BuildInfo.Revision}}"}""", "application/json")).AllowAnonymous();
 
 app.MapAccountEndpoints();
+app.MapMfaEndpoints();
 app.MapAdminIdentityEndpoints();
 app.MapTerminalEndpoints();
 app.MapSftpEndpoints();

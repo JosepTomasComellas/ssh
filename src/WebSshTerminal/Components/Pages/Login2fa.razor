@@ -1,0 +1,33 @@
+@page "/login/2fa"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+
+<PageTitle>Verificació en dos passos</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-8">
+    <MudPaper Class="pa-6">
+        <h1 class="mud-typography mud-typography-h5">Verificació en dos passos</h1>
+        @if (Error is not null)
+        {
+            <div role="alert" class="form-error">Codi incorrecte.</div>
+        }
+        <form method="post" action="/account/2fa" class="plain-form">
+            <AntiforgeryToken />
+            <label for="code">Codi de l'aplicació d'autenticació (6 dígits)</label>
+            <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" autofocus />
+            <button type="submit">Verifica</button>
+        </form>
+        <details class="mt-4">
+            <summary>He perdut l'aplicació: usar un codi de recuperació</summary>
+            <form method="post" action="/account/2fa" class="plain-form">
+                <AntiforgeryToken />
+                <label for="recovery">Codi de recuperació</label>
+                <input id="recovery" name="recovery" autocomplete="off" />
+                <button type="submit">Usa el codi</button>
+            </form>
+        </details>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery] public string? Error { get; set; }
+}

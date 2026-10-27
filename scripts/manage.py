@@ -91,7 +91,7 @@ def validate_config(cfg):
     require(isinstance(cfg, dict), "Config must be a JSON object")
     expected = {"domain", "proxy", "http_port", "proxy_network", "traefik_resolver",
                 "trusted_proxies", "backend_subnet", "backup_recipient", "verify_signed_tags",
-                "ssh_host", "ssh_port", "timezone"}
+                "ssh_host", "ssh_port", "timezone", "require_mfa"}
     require(set(cfg) == expected, "Unknown or missing configuration keys")
     domain = cfg["domain"]
     require(isinstance(domain, str) and len(domain) <= 253 and
@@ -109,6 +109,7 @@ def validate_config(cfg):
     require(type(cfg["verify_signed_tags"]) is bool, "verify_signed_tags must be boolean")
     require(isinstance(cfg["ssh_host"], str) and re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?", cfg["ssh_host"]),
             "Invalid ssh_host (plain host name or IP, no scheme/user/port)")
+    require(type(cfg["require_mfa"]) is bool, "require_mfa must be boolean")
     require(type(cfg["ssh_port"]) is int and 1 <= cfg["ssh_port"] <= 65535, "Invalid ssh_port")
     require(isinstance(cfg["timezone"], str) and re.fullmatch(r"[A-Za-z0-9_+/-]{1,64}", cfg["timezone"]), "Invalid timezone")
     require(isinstance(cfg["backup_recipient"], str) and
@@ -224,7 +225,7 @@ class Controller:
             "TRUSTED_PROXIES": ",".join(cfg["trusted_proxies"]), "BACKEND_SUBNET": cfg["backend_subnet"],
             "DATA_DIR": self.root / "data", "SECRETS_DIR": self.root / "secrets",
             "SOURCE_URL": SOURCE + "/tree/" + commit, "SSH_HOST": cfg["ssh_host"], "SSH_PORT": cfg["ssh_port"],
-            "TZ": cfg["timezone"],
+            "TZ": cfg["timezone"], "REQUIRE_MFA": "true" if cfg["require_mfa"] else "false",
         }
         (folder / "compose.env").write_text("".join(f"{k}='{v}'\n" for k, v in variables.items()), encoding="utf-8")
         (folder / "compose.env").chmod(0o600)

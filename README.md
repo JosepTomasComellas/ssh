@@ -42,7 +42,7 @@ Navegador ──HTTPS/WSS──▶ Nginx o Traefik ──▶ App (ASP.NET Core 1
 | Mètriques Prometheus agregades + dashboard Grafana | Fet (dashboard sense validar amb dades reals) |
 | Marca: crèdit fix **TuteApps**, nom/colors/tema configurables | Fet |
 | Interfície en castellà | Pendent |
-| MFA (TOTP) | Pendent (cal activar-lo abans d'exposar a Internet amb contrasenyes) |
+| MFA (TOTP) amb codis de recuperació; obligatori amb `require_mfa` | Fet |
 | Desplegament a Linux provat en un servidor real | Pendent (cal servidor, DNS i certificat) |
 
 ## Modes de desplegament
@@ -92,12 +92,12 @@ Les mètriques són agregades: cap etiqueta conté usuaris, IP, sessions, ordres
 Origen WebSocket validat; proxys de confiança només per IP exacta; cookies `HttpOnly`/`Secure`; antiforgery;
 capçaleres CSP i `X-Frame-Options`; contenidor sense privilegis (UID 1654, sistema de fitxers de només lectura,
 `cap_drop: ALL`); secrets en fitxers `0400`; logs sense secrets ni contingut de terminal. Els logs són en **hora
-local** (variable `TZ`). L'auditoria registra només metadades. **Sense MFA, no hi ha protecció davant d'una
+local** (variable `TZ`). L'auditoria registra només metadades. **Activa `require_mfa` a producció: sense MFA, no hi ha protecció davant d'una
 contrasenya robada.**
 
 ## Estat i limitacions
 
-Provat en local: 61 proves .NET (inclou OpenSSH i tmux reals en Docker), 7 proves e2e de navegador amb Nginx i amb
+Provat en local: 65 proves .NET (inclou OpenSSH i tmux reals en Docker), 7 proves e2e de navegador amb Nginx i amb
 Traefik, 4 proves d'operació, `dotnet format` i escaneig de dependències (NuGet i npm) sense troballes.
 **No provat:** servidor Linux real, DNS/ACME, Traefik amb *certresolver* real, càrrega, alta disponibilitat (una sola
 rèplica). El pipeline de release (`deploy/application.json`) continua bloquejat en `scaffold`; vegeu

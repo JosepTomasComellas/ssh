@@ -41,6 +41,7 @@ Genera `app_key`, `bootstrap_password` i `metrics_token` (propietari UID 1654, m
 | `ssh_host`, `ssh_port` | el servidor SSH únic de destí (nom o IP, sense esquema ni usuari) |
 | `timezone` | zona dels logs (p. ex. `Europe/Madrid`) |
 | `backup_recipient` | clau pública `age1…` |
+| `require_mfa` | `true` (recomanat): tothom ha d'activar TOTP en el primer accés i no el pot desactivar |
 | `http_port` | no s'usa amb Traefik (només Nginx) |
 
 ### 3.1 `trusted_proxies`
@@ -82,7 +83,9 @@ per a `status`, `backup`, `rollback` i `recover`.
 - Una sessió de terminal aguanta un refresh i es reconnecta (tmux).
 - `docker compose logs app`: només línies d'inici; cap secret.
 
-## 8. Recomanació de seguretat abans d'exposar a Internet
+## 8. MFA (TOTP)
 
-El MFA (TOTP) **encara no està implementat**. Amb només contrasenya, una contrasenya robada dona accés a una shell.
-Considera restringir l'accés a nivell de Traefik (llista d'IP o autenticació prèvia) fins que hi hagi un segon factor.
+Hi ha TOTP (RFC 6238) amb 10 codis de recuperació d'un sol ús. Amb `require_mfa: true`, cada usuari (admin inclòs) és
+redirigit a **MFA** en el primer accés, no pot fer res més fins que l'activa, i no pot desactivar-lo després. Desa els
+codis de recuperació de l'admin fora del servidor: si l'admin perd l'aplicació i els codis, caldrà intervenir a la
+base de dades (`webssh.db`). Amb `require_mfa: false` el MFA és opcional per usuari (pàgina **MFA** del menú).

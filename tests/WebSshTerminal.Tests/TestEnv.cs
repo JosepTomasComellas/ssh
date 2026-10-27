@@ -6,7 +6,7 @@ public sealed class TestEnv : IDisposable
     private static readonly string[] Keys =
     [
         "PublicUrl", "SshHost", "SshPort", "DataDirectory", "AppKeyFile", "BootstrapPasswordFile",
-        "SshCredentialsFile", "KnownHostsFile", "MaxSessionsPerUser", "MaxTotalSessions", "IdleTimeoutMinutes", "MaxTransferBytes",
+        "SshCredentialsFile", "KnownHostsFile", "MaxSessionsPerUser", "MaxTotalSessions", "IdleTimeoutMinutes", "MaxTransferBytes", "RequireMfa",
     ];
 
     public string Dir { get; } = Directory.CreateTempSubdirectory("webssh-").FullName;
@@ -18,6 +18,7 @@ public sealed class TestEnv : IDisposable
     public int MaxTotalSessions { get; set; } = 20;
     public int IdleTimeoutMinutes { get; set; } = 30;
     public long MaxTransferBytes { get; set; } = 50L * 1024 * 1024;
+    public bool RequireMfa { get; set; }
 
     public string Origin => new Uri(PublicUrl).GetLeftPart(UriPartial.Authority);
 
@@ -42,6 +43,7 @@ public sealed class TestEnv : IDisposable
         ["MaxTotalSessions"] = MaxTotalSessions.ToString(System.Globalization.CultureInfo.InvariantCulture),
         ["IdleTimeoutMinutes"] = IdleTimeoutMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),
         ["MaxTransferBytes"] = MaxTransferBytes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        ["RequireMfa"] = RequireMfa ? "true" : "false",
     };
 
     /// <summary>Program llegeix la configuració en crear el builder: cal passar-la per entorn.</summary>

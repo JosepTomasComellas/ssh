@@ -29,6 +29,7 @@ services:
       WebSsh__KnownHostsFile: /run/secrets/known_hosts
       WebSsh__SshHost: ${SSH_HOST:?Set the single SSH server host}
       WebSsh__SshPort: ${SSH_PORT:?Set SSH port}
+      WebSsh__RequireMfa: ${REQUIRE_MFA:?Set require_mfa}
       WebSsh__MetricsPort: "9091"
       WebSsh__MetricsTokenFile: /run/secrets/metrics_token  # obligatori: l'app comparteix xarxa amb el proxy
       WebSsh__SourceUrl: ${SOURCE_URL:?Set source revision URL}

@@ -15,6 +15,7 @@ namespace WebSshTerminal.Auth;
 public static class AuthSetup
 {
     public const string MustChangeClaim = "must_change_pw";
+    public const string MfaPendingClaim = "mfa_pending";
     public const string AdminPolicy = "AdminOnly";
     public const string LoginLimiter = "login";
 
@@ -86,13 +87,14 @@ public static class AuthSetup
     }
 
     /// <summary>Afegeix la marca de «canvi de contrasenya pendent» a la cookie.</summary>
-    private sealed class ClaimsFactory(UserManager<AppUser> um, RoleManager<IdentityRole> rm, Microsoft.Extensions.Options.IOptions<IdentityOptions> o)
+    private sealed class ClaimsFactory(UserManager<AppUser> um, RoleManager<IdentityRole> rm, Microsoft.Extensions.Options.IOptions<IdentityOptions> o, WebSshOptions webOptions)
         : UserClaimsPrincipalFactory<AppUser, IdentityRole>(um, rm, o)
     {
         protected override async Task<ClaimsIdentity> GenerateClaimsAsync(AppUser user)
         {
             var id = await base.GenerateClaimsAsync(user);
             if (user.MustChangePassword) id.AddClaim(new Claim(MustChangeClaim, "1"));
+            if (webOptions.RequireMfa && !user.TwoFactorEnabled) id.AddClaim(new Claim(MfaPendingClaim, "1"));
             return id;
         }
     }

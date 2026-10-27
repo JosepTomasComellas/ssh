@@ -25,7 +25,7 @@ Linux o servidor SSH reals.
 | Fase | Estat | Evidència |
 |---|---|---|
 | 1. Esquelet .NET 10 / Blazor / MudBlazor | **implementada** | build Release 0 avisos |
-| 2. Comptes i autorització | **implementada** (TOTP només documentat/preparat) | tests d'Auth: login, lockout, rate limit, rols, revocació, reinici de contrasenya |
+| 2. Comptes i autorització | **implementada** (TOTP implementat: opcional o obligatori amb `require_mfa`) | tests d'Auth: login, lockout, rate limit, rols, revocació, reinici de contrasenya |
 | 3. SSH, PTY, tmux | **implementada** | tests contra OpenSSH+tmux real (Docker): PTY, resize, reattach, host key, aïllament, origen |
 | 4. Credencials, SFTP, auditoria, porta-retalls | **implementada** | tests SFTP (traversal, symlinks, límits, overwrite) i «cap secret a BD/logs» |
 | 5. UI i marca | **implementada** (català; castellà pendent) | e2e Playwright ample/estret, teclat, tooltip TuteApps |

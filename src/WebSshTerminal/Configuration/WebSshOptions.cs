@@ -29,6 +29,8 @@ public sealed class WebSshOptions
     public long MaxTransferBytes { get; set; } = 50L * 1024 * 1024;
     public int ShutdownTimeoutSeconds { get; set; } = 25;
     /// <summary>Intents de login per minut i IP (després de resoldre els proxys de confiança).</summary>
+    /// <summary>Si és true, tots els usuaris han d'activar MFA (TOTP) abans d'usar res més, i no el poden desactivar.</summary>
+    public bool RequireMfa { get; set; }
     public int LoginRateLimitPerMinute { get; set; } = 10;
 
     public BrandingOptions Branding { get; set; } = new();
