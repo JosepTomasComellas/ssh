@@ -1,0 +1,10 @@
+{
+  "name": "web-ssh-terminal-vendor",
+  "private": true,
+  "description": "Només per descarregar xterm.js de manera determinista; no forma part de l'aplicació.",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "@xterm/xterm": "6.0.0",
+    "@xterm/addon-fit": "0.11.0"
+  }
+}

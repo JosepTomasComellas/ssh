@@ -1,0 +1,13 @@
+.git
+.env*
+**/secrets
+**/backups
+**/state
+**/*.pem
+**/*.key
+**/*.pfx
+**/id_rsa*
+**/id_ed25519*
+**/bin
+**/obj
+tests

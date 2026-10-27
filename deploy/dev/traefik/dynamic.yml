@@ -1,0 +1,5 @@
+# Traefik LOCAL: certificat autosignat de .dev/certs (només desenvolupament).
+tls:
+  certificates:
+    - certFile: /certs/dev.crt
+      keyFile: /certs/dev.key

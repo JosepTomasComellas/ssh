@@ -1,0 +1,67 @@
+@page "/account/mfa"
+@using Microsoft.AspNetCore.Identity
+@using WebSshTerminal.Auth
+@using WebSshTerminal.Data
+@inject UserManager<AppUser> Users
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>MFA</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <h1 class="mud-typography mud-typography-h5">Verificació en dos passos (TOTP)</h1>
+    @if (Error is not null)
+    {
+        <div role="alert" class="form-error">@(Error switch { "code" => "El codi no és correcte.", "password" => "La contrasenya no és correcta.", "required" => "L'administrador exigeix MFA: no es pot desactivar.", _ => "No s'ha pogut completar l'acció." })</div>
+    }
+    @if (_enabled)
+    {
+        <p role="status">El MFA està <b>activat</b> al teu compte.</p>
+        <form method="post" action="/account/mfa/disable" class="plain-form">
+            <AntiforgeryToken />
+            <label for="password">Contrasenya (per desactivar-lo)</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+            <button type="submit">Desactiva el MFA</button>
+        </form>
+    }
+    else if (_key is null)
+    {
+        <p>Protegeix el compte amb un segon factor: un codi de 6 dígits d'una aplicació d'autenticació (Aegis, 2FAS, Google Authenticator…).</p>
+        <form method="post" action="/account/mfa/start" class="plain-form"><AntiforgeryToken /><button type="submit">Activa el MFA</button></form>
+    }
+    else
+    {
+        <p>1. A l'aplicació d'autenticació, afegeix un compte <b>manualment</b> amb aquesta clau (tipus «basat en temps»):</p>
+        <p><code id="mfa-key">@_key</code></p>
+        <p>O enganxa aquest enllaç <code>otpauth</code> si l'aplicació l'admet:</p>
+        <p><code style="word-break:break-all">@_uri</code></p>
+        <p>2. Escriu el codi que et mostra per confirmar:</p>
+        <form method="post" action="/account/mfa/confirm" class="plain-form">
+            <AntiforgeryToken />
+            <label for="code">Codi (6 dígits)</label>
+            <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" required />
+            <button type="submit">Confirma i activa</button>
+        </form>
+    }
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery] public string? Error { get; set; }
+    [Inject] private WebSshTerminal.Configuration.WebSshOptions Options { get; set; } = default!;
+
+    private bool _enabled;
+    private string? _key;
+    private string? _uri;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var principal = (await AuthState.GetAuthenticationStateAsync()).User;
+        var user = await Users.GetUserAsync(principal);
+        if (user is null) return;
+        _enabled = user.TwoFactorEnabled;
+        if (_enabled) return;
+        var raw = await Users.GetAuthenticatorKeyAsync(user);
+        if (string.IsNullOrEmpty(raw)) return; // encara no s'ha iniciat l'activació
+        _key = string.Join(' ', Enumerable.Range(0, (raw.Length + 3) / 4).Select(i => raw.Substring(i * 4, Math.Min(4, raw.Length - i * 4)))).ToLowerInvariant();
+        _uri = MfaEndpoints.OtpAuthUri(Options.Branding.Name, user.UserName ?? "", raw);
+    }
+}

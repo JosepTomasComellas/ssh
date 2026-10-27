@@ -1,0 +1,484 @@
+{
+  "uid": "webssh-overview",
+  "title": "Web SSH Terminal - Visió general",
+  "tags": [
+    "web-ssh-terminal"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "to": "now",
+    "from": "now-6h"
+  },
+  "editable": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Estat del servei (up)",
+      "description": "1 = el scrape funciona",
+      "type": "stat",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"web-ssh-terminal\"}",
+          "legendFormat": "up",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Sessions de terminal actives",
+      "description": "",
+      "type": "stat",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 4,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "webssh_terminal_sessions_active",
+          "legendFormat": "actives",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Sessions simultànies",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 15,
+        "x": 9,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "webssh_terminal_sessions_active",
+          "legendFormat": "actives",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Connexions SSH per resultat (per minut)",
+      "description": "Errors: hostkey, auth, unreachable, other",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (result) (increase(webssh_ssh_connections_total[5m])) / 5",
+          "legendFormat": "{{result}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Errors i rebuigs per categoria (per minut)",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (category) (increase(webssh_rejections_total[5m])) / 5",
+          "legendFormat": "{{category}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (result) (increase(webssh_logins_total{result!=\"ok\"}[5m])) / 5",
+          "legendFormat": "login {{result}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Durada de les connexions de terminal (p50 / p95)",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(webssh_terminal_attach_duration_seconds_bucket[15m])))",
+          "legendFormat": "p50",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(webssh_terminal_attach_duration_seconds_bucket[15m])))",
+          "legendFormat": "p95",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Connexions noves vs reconnexions",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (kind) (increase(webssh_terminal_attaches_total[5m])) / 5",
+          "legendFormat": "{{kind}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Transferències SFTP (per minut)",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (direction, result) (increase(webssh_sftp_transfers_total[5m])) / 5",
+          "legendFormat": "{{direction}} {{result}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Bytes transferits per SFTP (per segon)",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (direction) (rate(webssh_sftp_bytes_total[5m]))",
+          "legendFormat": "{{direction}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Latència HTTP p95",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Peticions HTTP per codi (per segon)",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (code) (rate(http_requests_received_total[5m]))",
+          "legendFormat": "{{code}}",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Memòria del procés",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "process_working_set_bytes{job=\"web-ssh-terminal\"}",
+          "legendFormat": "working set",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "CPU del procés",
+      "description": "",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "webssh-prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(process_cpu_seconds_total{job=\"web-ssh-terminal\"}[5m])",
+          "legendFormat": "nuclis",
+          "datasource": {
+            "uid": "webssh-prometheus",
+            "type": "prometheus"
+          }
+        }
+      ]
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  }
+}

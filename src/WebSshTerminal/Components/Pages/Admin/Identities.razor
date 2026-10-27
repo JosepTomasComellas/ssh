@@ -1,0 +1,71 @@
+@page "/admin/identities"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = WebSshTerminal.Auth.AuthSetup.AdminPolicy)]
+@using Microsoft.EntityFrameworkCore
+@using WebSshTerminal.Data
+@inject AppDbContext Db
+
+<PageTitle>Identitats SSH</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <h1 class="mud-typography mud-typography-h5">Identitats SSH</h1>
+    <p>
+        Cada identitat és un compte Linux del servidor remot amb la seva clau privada, desada xifrada.
+        La clau no es torna a mostrar després de desar-la. El <code>sudo</code> es concedeix al servidor remot, no aquí.
+    </p>
+    @if (Saved is not null)
+    {
+        <div role="status" class="form-ok">Identitat desada.</div>
+    }
+    @if (Error is not null)
+    {
+        <div role="alert" class="form-error">No s'ha pogut completar l'acció (@Error).</div>
+    }
+
+    <form method="post" action="/admin/identities" class="plain-form">
+        <AntiforgeryToken />
+        <label for="name">Nom (intern)</label>
+        <input id="name" name="name" required maxlength="64" pattern="[A-Za-z0-9._-]+" />
+        <label for="linuxUser">Compte Linux remot</label>
+        <input id="linuxUser" name="linuxUser" required maxlength="32" pattern="[a-z_][a-z0-9_-]*" autocomplete="off" />
+        <label for="privateKey">Clau privada (OpenSSH o PEM, sense passphrase)</label>
+        <textarea id="privateKey" name="privateKey" rows="6" required autocomplete="off" spellcheck="false"></textarea>
+        <label for="note">Nota (opcional)</label>
+        <input id="note" name="note" maxlength="200" />
+        <button type="submit">Desa la identitat</button>
+    </form>
+
+    <table class="user-table">
+        <thead><tr><th>Nom</th><th>Compte Linux</th><th>Assignada a</th><th>Nota</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var i in _rows)
+        {
+            <tr>
+                <td>@i.Name</td>
+                <td>@i.LinuxUser</td>
+                <td>@(i.AssignedTo ?? "—")</td>
+                <td>@i.Note</td>
+                <td>
+                    <form method="post" action="/admin/identities/@i.Id/delete" class="inline">
+                        <AntiforgeryToken /><button disabled="@(i.AssignedTo is not null)">Esborra</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery] public string? Error { get; set; }
+    [SupplyParameterFromQuery] public string? Saved { get; set; }
+
+    private sealed record Row(Guid Id, string Name, string LinuxUser, string? Note, string? AssignedTo);
+    private List<Row> _rows = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var users = await Db.Users.AsNoTracking().Where(u => u.SshIdentityId != null).ToDictionaryAsync(u => u.SshIdentityId!.Value, u => u.UserName);
+        _rows = (await Db.SshIdentities.AsNoTracking().OrderBy(i => i.Name).ToListAsync())
+            .Select(i => new Row(i.Id, i.Name, i.LinuxUser, i.Note, users.GetValueOrDefault(i.Id))).ToList();
+    }
+}

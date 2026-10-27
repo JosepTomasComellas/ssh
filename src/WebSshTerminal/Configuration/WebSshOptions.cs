@@ -1,0 +1,46 @@
+namespace WebSshTerminal.Configuration;
+
+/// <summary>Configuració de la instància (secció "WebSsh"). Els secrets es llegeixen de fitxers, mai d'aquí.</summary>
+public sealed class WebSshOptions
+{
+    public const string Section = "WebSsh";
+
+    public string PublicUrl { get; set; } = "";
+    public string SourceUrl { get; set; } = "https://github.com/JosepTomasComellas/ssh";
+    public string DataDirectory { get; set; } = "/var/lib/web-ssh-terminal";
+
+    public string SshHost { get; set; } = "";
+    public int SshPort { get; set; } = 22;
+    public string KnownHostsFile { get; set; } = "";
+    public string SshCredentialsFile { get; set; } = "";
+    public string AppKeyFile { get; set; } = "";
+    public string BootstrapPasswordFile { get; set; } = "";
+    /// <summary>Opcional: bearer token del scrape de mètriques (obligatori si Prometheus és en una xarxa compartida).</summary>
+    public string MetricsTokenFile { get; set; } = "";
+    /// <summary>Port de gestió de /metrics (0 = desactivat). No es publica al host ni al proxy.</summary>
+    public int MetricsPort { get; set; } = 9091;
+
+    /// <summary>IP exactes de proxys de confiança, separades per comes.</summary>
+    public string TrustedProxies { get; set; } = "";
+
+    public int MaxSessionsPerUser { get; set; } = 3;
+    public int MaxTotalSessions { get; set; } = 20;
+    public int IdleTimeoutMinutes { get; set; } = 30;
+    public long MaxTransferBytes { get; set; } = 50L * 1024 * 1024;
+    public int ShutdownTimeoutSeconds { get; set; } = 25;
+    /// <summary>Intents de login per minut i IP (després de resoldre els proxys de confiança).</summary>
+    /// <summary>Si és true, tots els usuaris han d'activar MFA (TOTP) abans d'usar res més, i no el poden desactivar.</summary>
+    public bool RequireMfa { get; set; }
+    public int LoginRateLimitPerMinute { get; set; } = 10;
+
+    public BrandingOptions Branding { get; set; } = new();
+}
+
+/// <summary>Personalització de la instància. El crèdit TuteApps no és configurable.</summary>
+public sealed class BrandingOptions
+{
+    public string Name { get; set; } = "Web SSH Terminal";
+    public string PrimaryColor { get; set; } = "#1565c0";
+    public string Theme { get; set; } = "auto"; // auto | light | dark
+    public string LogoUrl { get; set; } = "";
+}

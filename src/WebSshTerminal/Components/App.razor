@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["WebSshTerminal.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet />
+</head>
+
+<body data-enhance-nav="false">
+    <Routes />
+    <ReconnectModal />
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+    @if (OnTerminalPage)
+    {
+        <script src="@Assets["lib/xterm/xterm.js"]"></script>
+        <script src="@Assets["lib/xterm/addon-fit.js"]"></script>
+        <script src="@Assets["js/terminal.js"]"></script>
+    }
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter] private HttpContext? Ctx { get; set; }
+
+    private bool OnTerminalPage => Ctx?.Request.Path.StartsWithSegments("/terminal") == true;
+}

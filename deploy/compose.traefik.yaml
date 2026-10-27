@@ -1,0 +1,21 @@
+services:
+  app:
+    networks: [backend, proxy]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${PROXY_NETWORK:?Set existing Traefik network}
+      traefik.http.routers.webssh.rule: Host(`${DOMAIN}`)
+      traefik.http.routers.webssh.entrypoints: websecure
+      traefik.http.routers.webssh.tls: "true"
+      traefik.http.routers.webssh.tls.certresolver: ${TRAEFIK_RESOLVER:?Set certificate resolver}
+      traefik.http.routers.webssh.service: webssh
+      traefik.http.services.webssh.loadbalancer.server.port: "8080"
+      traefik.http.routers.webssh.middlewares: webssh-headers
+      traefik.http.middlewares.webssh-headers.headers.stsSeconds: "31536000"
+      traefik.http.middlewares.webssh-headers.headers.contentTypeNosniff: "true"
+      traefik.http.middlewares.webssh-headers.headers.frameDeny: "true"
+      traefik.http.middlewares.webssh-headers.headers.referrerPolicy: no-referrer
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK}

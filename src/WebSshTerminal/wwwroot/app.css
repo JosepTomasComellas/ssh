@@ -1,0 +1,77 @@
+html, body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }
+
+.instance-logo { height: 32px; }
+
+.main-with-credit { padding-bottom: 88px; }
+
+.source-footer {
+    position: fixed; left: 0; bottom: 0; padding: 6px 16px; font-size: .8rem;
+    background: rgba(255, 255, 255, .85); color: #333; border-top-right-radius: 6px;
+}
+.source-footer a { color: inherit; }
+
+/* Crèdit fix: no depèn del tema ni de la configuració de la instància. */
+.tuteapps-credit {
+    position: fixed; right: 16px; bottom: 16px; z-index: 2000;
+    display: block; line-height: 0; border-radius: 6px;
+}
+.tuteapps-credit img { height: 40px; width: auto; display: block; }
+.tuteapps-credit:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+
+.plain-form { display: grid; gap: .5rem; margin-top: 1rem; }
+.plain-form.inline, form.inline { display: inline-flex; gap: .5rem; align-items: center; margin: 0 .25rem 0 0; }
+.plain-form input, .plain-form select { padding: .5rem; font-size: 1rem; }
+.plain-form button, .user-table button { padding: .5rem 1rem; font-size: 1rem; cursor: pointer; }
+.form-error { background: #fdecea; color: #611a15; padding: .75rem; border-radius: 4px; margin-top: 1rem; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.terminal-page { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1rem; padding: 1rem 1rem 0 1rem; }
+.terminal-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+.terminal-toolbar button, .terminal-toolbar select, .terminal-files button, .terminal-files input { padding: .4rem .7rem; font-size: .95rem; }
+.terminal-status { margin-left: .5rem; font-size: .9rem; }
+.terminal-session-id { font-size: .8rem; opacity: .7; }
+#terminal { height: calc(100vh - 11rem); min-height: 18rem; background: #000; padding: .25rem; border-radius: 4px; }
+#terminal:focus-within { outline: 3px solid #ffbf47; }
+.terminal-files { min-width: 0; padding-bottom: 6rem; }
+.terminal-files label { display: block; margin-top: .75rem; font-size: .9rem; }
+.files-path-row { display: flex; gap: .5rem; }
+.files-path-row input { flex: 1; min-width: 0; }
+.files-list { list-style: none; padding: 0; margin: .5rem 0; max-height: 14rem; overflow: auto; font-size: .9rem; }
+.files-list button { background: none; border: 0; padding: .1rem 0; cursor: pointer; text-decoration: underline; }
+.hint { font-size: .85rem; opacity: .75; }
+@media (max-width: 800px) {
+    .terminal-page { grid-template-columns: minmax(0, 1fr); }
+    #terminal { height: 60vh; }
+    .terminal-files { padding-bottom: 6rem; }
+}
+
+.form-ok { background: #e8f5e9; color: #1b5e20; padding: .75rem; border-radius: 4px; margin-top: 1rem; }
+.plain-form textarea { padding: .5rem; font-family: monospace; font-size: .9rem; }
+.user-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+.user-table th, .user-table td { text-align: left; padding: .5rem; border-bottom: 1px solid #ddd; }
+.appbar-link { color: inherit; background: none; border: 0; font: inherit; margin-left: 1rem; cursor: pointer; text-decoration: underline; }
+
+#blazor-error-ui {
+    color-scheme: light only; background: lightyellow; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, .2);
+    box-sizing: border-box; display: none; left: 0; padding: .6rem 1.25rem .7rem 1.25rem; position: fixed;
+    width: 100%; z-index: 1000;
+}
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: .75rem; top: .5rem; }
+
+/* Tooltip del crèdit: visible amb ratolí i amb focus de teclat, a més del title natiu. */
+.tuteapps-credit::after {
+    content: attr(data-tooltip); position: absolute; right: 0; bottom: calc(100% + 6px); white-space: nowrap;
+    background: #212121; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: .8rem; line-height: 1.3;
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.tuteapps-credit:hover::after, .tuteapps-credit:focus-visible::after { opacity: 1; }
+
+/* Botons de formularis simples (MudBlazor els deixa sense estil). */
+.terminal-toolbar button, .terminal-files button, .plain-form button, .user-table button, .appbar-link-btn {
+    border: 1px solid #757575; border-radius: 4px; background: #f5f5f5; color: #212121; cursor: pointer;
+}
+.terminal-toolbar button:hover, .terminal-files button:hover, .plain-form button:hover, .user-table button:hover { background: #e0e0e0; }
+.terminal-toolbar button:disabled, .user-table button:disabled { opacity: .5; cursor: not-allowed; }
+.terminal-toolbar button[aria-pressed="true"] { background: #1565c0; color: #fff; border-color: #0d47a1; }
+.terminal-files button[type="button"].files-dir, .files-list button { border: 0; background: none; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }

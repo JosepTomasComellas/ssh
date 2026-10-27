@@ -1,0 +1,16 @@
+﻿@page "/"
+@inject WebSshOptions Options
+
+<PageTitle>@Options.Branding.Name</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudText Typo="Typo.h4" GutterBottom="true">@Options.Branding.Name</MudText>
+    <MudText>
+        Terminal SSH al navegador cap a un únic servidor configurat per l'administrador.
+        L'accés requereix un compte local; aquesta versió encara no inclou inici de sessió.
+    </MudText>
+    <MudAlert Severity="Severity.Info" Class="mt-4">
+        El servei és actiu. La connexió SSH no està disponible fins que s'implementin
+        comptes, validació de clau de host i terminal.
+    </MudAlert>
+</MudContainer>

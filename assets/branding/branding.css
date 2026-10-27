@@ -1,0 +1,8 @@
+/* Product requirement: fixed TuteApps credit; independent of tenant theming. */
+.tuteapps-credit {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 1400;
+}
+.tuteapps-credit img { width: 28px; height: 28px; object-fit: contain; }

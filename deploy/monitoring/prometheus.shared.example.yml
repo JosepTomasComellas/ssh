@@ -1,0 +1,15 @@
+# FRAGMENT per afegir al Prometheus COMPARTIT existent (secció scrape_configs).
+# Requisits al servidor:
+#   1. El contenidor de Prometheus ha d'estar a la xarxa Docker externa de monitoratge on es connecta l'app
+#      (vegeu deploy/monitoring/compose.monitoring-shared.yaml) i resoldre el nom «web-ssh-terminal».
+#   2. El token Bearer és el contingut de <secrets>/metrics_token (mínim 32 caràcters); copia'l a un fitxer
+#      llegible només per Prometheus i rota'l regenerant el fitxer i reiniciant l'app.
+#   3. El port 9091 NO es publica al host ni a través de Nginx/Traefik.
+scrape_configs:
+  - job_name: web-ssh-terminal
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/secrets/web-ssh-terminal.token
+    static_configs:
+      - targets: ["web-ssh-terminal:9091"]
