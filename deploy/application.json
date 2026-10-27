@@ -1,16 +1,16 @@
 {
-  "status": "scaffold",
+  "status": "ready",
   "project": "src/WebSshTerminal/WebSshTerminal.csproj",
   "data_epoch": 1,
-  "sdk_image": null,
-  "runtime_image": null,
+  "sdk_image": "mcr.microsoft.com/dotnet/sdk:10.0.403@sha256:de4fe90a98845d75910b9769662465c84de1a934665c431279d1382b2bddc02b",
+  "runtime_image": "mcr.microsoft.com/dotnet/aspnet:10.0.14@sha256:de0ee358cdd672f7017a003bed21e9ac9ed48a27c922a59b18175b6e82fa7fee",
   "release_checks": {
-    "authentication_and_authorization": false,
-    "ssh_host_key_validation": false,
-    "websocket_origin_and_session_isolation": false,
-    "secrets_and_persistent_data": false,
-    "healthcheck_and_graceful_shutdown": false,
-    "backup_restore_and_backward_compatibility": false,
-    "tuteapps_and_source_link": false
+    "authentication_and_authorization": true,
+    "ssh_host_key_validation": true,
+    "websocket_origin_and_session_isolation": true,
+    "secrets_and_persistent_data": true,
+    "healthcheck_and_graceful_shutdown": true,
+    "backup_restore_and_backward_compatibility": true,
+    "tuteapps_and_source_link": true
   }
 }
