@@ -6,45 +6,6 @@ using WebSshTerminal.Infrastructure;
 
 namespace WebSshTerminal.Tests;
 
-public sealed class TestEnv : IDisposable
-{
-    public string Dir { get; } = Directory.CreateTempSubdirectory("webssh-").FullName;
-
-    public Dictionary<string, string?> Settings()
-    {
-        string F(string name, string content)
-        {
-            var p = Path.Combine(Dir, name);
-            File.WriteAllText(p, content);
-            return p;
-        }
-        return new()
-        {
-            ["WebSsh:PublicUrl"] = "https://ssh.example.test",
-            ["WebSsh:SshHost"] = "ssh-fixture",
-            ["WebSsh:DataDirectory"] = Dir,
-            ["WebSsh:AppKeyFile"] = F("app_key", new string('a', 64)),
-            ["WebSsh:BootstrapPasswordFile"] = F("bootstrap", TestApp.BootstrapPassword),
-            ["WebSsh:SshCredentialsFile"] = F("ssh_credentials", "{}"),
-            ["WebSsh:KnownHostsFile"] = F("known_hosts", ""),
-        };
-    }
-
-    /// <summary>Program llegeix la configuració en crear el builder: cal passar-la per entorn.</summary>
-    public TestEnv Apply()
-    {
-        foreach (var (k, v) in Settings()) Environment.SetEnvironmentVariable(k.Replace(":", "__", StringComparison.Ordinal), v);
-        return this;
-    }
-
-    public void Dispose()
-    {
-        foreach (var k in Settings().Keys) Environment.SetEnvironmentVariable(k.Replace(":", "__", StringComparison.Ordinal), null);
-        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); // allibera webssh.db abans d'esborrar
-        Directory.Delete(Dir, recursive: true);
-    }
-}
-
 [Collection("env")]
 public class StartupTests
 {

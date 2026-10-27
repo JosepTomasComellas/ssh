@@ -27,6 +27,18 @@ internal static partial class Log
     [LoggerMessage(1311, LogLevel.Warning, "Compte bloquejat per intents fallits.")]
     public static partial void LockedOut(ILogger logger);
 
+    [LoggerMessage(1400, LogLevel.Warning, "Connexió SSH fallida (categoria {Category}).")]
+    public static partial void SshConnectFailed(ILogger logger, string category);
+
+    [LoggerMessage(1401, LogLevel.Information, "Terminal connectat; sessions actives: {Active}.")]
+    public static partial void TerminalAttached(ILogger logger, int active);
+
+    [LoggerMessage(1402, LogLevel.Information, "Terminal desconnectat (motiu {Reason}); sessions actives: {Active}.")]
+    public static partial void TerminalDetached(ILogger logger, string reason, int active);
+
+    [LoggerMessage(1403, LogLevel.Warning, "WebSocket rebutjat (motiu {Reason}).")]
+    public static partial void WebSocketRejected(ILogger logger, string reason);
+
     [LoggerMessage(1200, LogLevel.Error, "Error no gestionat. TraceId={TraceId}")]
     public static partial void Unhandled(ILogger logger, Exception exception, string traceId);
 }

@@ -5,6 +5,8 @@ using WebSshTerminal.Auth;
 using WebSshTerminal.Components;
 using WebSshTerminal.Configuration;
 using WebSshTerminal.Infrastructure;
+using WebSshTerminal.Ssh;
+using WebSshTerminal.Terminal;
 
 if (args.Contains("--healthcheck")) return await HealthProbe.RunAsync();
 
@@ -55,6 +57,12 @@ if (!builder.Environment.IsDevelopment())
     var publicHost = new Uri(options.PublicUrl).Host;
     builder.Services.Configure<Microsoft.AspNetCore.HostFiltering.HostFilteringOptions>(h => h.AllowedHosts = [publicHost]);
 }
+builder.Services.AddSingleton<CredentialProtector>();
+builder.Services.AddSingleton<SshConnector>();
+builder.Services.AddSingleton<LiveSessions>();
+builder.Services.AddScoped<AuditLog>();
+builder.Services.AddScoped<TerminalSessionService>();
+builder.Services.AddScoped<SshIdentityService>();
 builder.Services.AddMudServices();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
@@ -66,7 +74,14 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseRouting(); // explícit: rate limiter, autorització i antiforgery necessiten l'endpoint ja resolt
+
+// Les pàgines d'estat només per a la UI: re-executar /not-found amb DELETE/POST de l'API
+// deformaria la resposta (405/400 en lloc del 404/403 real).
+app.UseWhen(
+    c => (HttpMethods.IsGet(c.Request.Method) || HttpMethods.IsHead(c.Request.Method))
+        && !c.Request.Path.StartsWithSegments("/api") && !c.Request.Path.StartsWithSegments("/ws"),
+    b => b.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 
 app.Use(async (ctx, next) =>
 {
@@ -82,6 +97,10 @@ app.Use(async (ctx, next) =>
         h.CacheControl = "no-store";
     await next();
 });
+
+var wsOptions = new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) };
+wsOptions.AllowedOrigins.Add(new Uri(options.PublicUrl).GetLeftPart(UriPartial.Authority));
+app.UseWebSockets(wsOptions);
 
 app.UseRateLimiter();
 app.UseAuthentication();
@@ -104,13 +123,18 @@ app.MapGet("/health/live", () => Results.Text("""{"status":"ok"}""", "applicatio
 app.MapGet("/health/ready", () => Results.Text($$"""{"status":"ok","revision":"{{BuildInfo.Revision}}"}""", "application/json")).AllowAnonymous();
 
 app.MapAccountEndpoints();
+app.MapTerminalEndpoints();
 app.MapStaticAssets().AllowAnonymous();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 var appLog = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("WebSshTerminal");
 lifetime.ApplicationStarted.Register(() => Log.Started(appLog, BuildInfo.Revision));
-lifetime.ApplicationStopping.Register(() => Log.Stopping(appLog));
+lifetime.ApplicationStopping.Register(() =>
+{
+    Log.Stopping(appLog);
+    app.Services.GetRequiredService<LiveSessions>().CancelAll(); // tmux continua al servidor remot
+});
 lifetime.ApplicationStopped.Register(() => Log.Stopped(appLog));
 
 await app.RunAsync();

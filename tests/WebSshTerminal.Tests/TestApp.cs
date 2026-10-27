@@ -10,7 +10,7 @@ namespace WebSshTerminal.Tests;
 /// <summary>Program llegeix la configuració en crear el builder: per això va per variables d'entorn,
 /// i les proves que n'usen no poden córrer en paral·lel entre elles.</summary>
 [CollectionDefinition("env", DisableParallelization = true)]
-public sealed class EnvDefinition;
+public sealed class EnvDefinition : ICollectionFixture<SshFixture>;
 
 public sealed partial class TestApp : IDisposable
 {

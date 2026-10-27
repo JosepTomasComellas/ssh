@@ -80,14 +80,14 @@ public sealed partial class AuthTests
         using var app = new TestApp();
         using var c = app.NewClient();
         var token = await TestApp.TokenAsync(c, "/login");
-        HttpStatusCode last = default;
+        var codes = new List<HttpStatusCode>();
         for (var i = 0; i < 12; i++)
         {
             var r = await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
             { ["username"] = "nobody" + i, ["password"] = "x", ["__RequestVerificationToken"] = token }));
-            last = r.StatusCode;
+            codes.Add(r.StatusCode);
         }
-        Assert.Equal(HttpStatusCode.TooManyRequests, last);
+        Assert.True(codes[^1] == HttpStatusCode.TooManyRequests, string.Join(",", codes));
     }
 
     [Fact]
