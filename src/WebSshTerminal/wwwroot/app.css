@@ -23,6 +23,30 @@ html, body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }
 .plain-form input, .plain-form select { padding: .5rem; font-size: 1rem; }
 .plain-form button, .user-table button { padding: .5rem 1rem; font-size: 1rem; cursor: pointer; }
 .form-error { background: #fdecea; color: #611a15; padding: .75rem; border-radius: 4px; margin-top: 1rem; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.terminal-page { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1rem; padding: 1rem 1rem 0 1rem; }
+.terminal-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+.terminal-toolbar button, .terminal-toolbar select, .terminal-files button, .terminal-files input { padding: .4rem .7rem; font-size: .95rem; }
+.terminal-status { margin-left: .5rem; font-size: .9rem; }
+.terminal-session-id { font-size: .8rem; opacity: .7; }
+#terminal { height: calc(100vh - 11rem); min-height: 18rem; background: #000; padding: .25rem; border-radius: 4px; }
+#terminal:focus-within { outline: 3px solid #ffbf47; }
+.terminal-files { min-width: 0; padding-bottom: 6rem; }
+.terminal-files label { display: block; margin-top: .75rem; font-size: .9rem; }
+.files-path-row { display: flex; gap: .5rem; }
+.files-path-row input { flex: 1; min-width: 0; }
+.files-list { list-style: none; padding: 0; margin: .5rem 0; max-height: 14rem; overflow: auto; font-size: .9rem; }
+.files-list button { background: none; border: 0; padding: .1rem 0; cursor: pointer; text-decoration: underline; }
+.hint { font-size: .85rem; opacity: .75; }
+@media (max-width: 800px) {
+    .terminal-page { grid-template-columns: minmax(0, 1fr); }
+    #terminal { height: 60vh; }
+    .terminal-files { padding-bottom: 6rem; }
+}
+
+.form-ok { background: #e8f5e9; color: #1b5e20; padding: .75rem; border-radius: 4px; margin-top: 1rem; }
+.plain-form textarea { padding: .5rem; font-family: monospace; font-size: .9rem; }
 .user-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
 .user-table th, .user-table td { text-align: left; padding: .5rem; border-bottom: 1px solid #ddd; }
 .appbar-link { color: inherit; background: none; border: 0; font: inherit; margin-left: 1rem; cursor: pointer; text-decoration: underline; }

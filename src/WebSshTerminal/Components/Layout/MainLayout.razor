@@ -16,8 +16,10 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
+                <a href="/terminal" class="appbar-link">Terminal</a>
                 <AuthorizeView Policy="@WebSshTerminal.Auth.AuthSetup.AdminPolicy" Context="adminCtx">
                     <a href="/admin/users" class="appbar-link">Usuaris</a>
+                    <a href="/admin/identities" class="appbar-link">Identitats</a>
                 </AuthorizeView>
                 <span class="appbar-link">@context.User.Identity?.Name</span>
                 <form method="post" action="/account/logout" class="inline">

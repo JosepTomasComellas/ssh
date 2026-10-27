@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace WebSshTerminal.Tests;
 
@@ -19,6 +20,7 @@ public sealed partial class TestApp : IDisposable
     private readonly TestEnv _env;
     private readonly bool _ownsEnv;
     public WebApplicationFactory<Program> Factory { get; }
+    public LogCapture Logs { get; } = new();
 
     public TestApp(TestEnv? shared = null, bool zeroStampInterval = true)
     {
@@ -27,6 +29,7 @@ public sealed partial class TestApp : IDisposable
         Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
         {
             b.UseEnvironment("Development");
+            b.ConfigureLogging(l => l.AddProvider(Logs));
             b.ConfigureServices(s =>
             {
                 if (zeroStampInterval) s.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.Zero);

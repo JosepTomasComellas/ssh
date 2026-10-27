@@ -22,18 +22,7 @@ public static class TerminalEndpoints
 {
     public static void MapTerminalEndpoints(this WebApplication app)
     {
-        // API JSON: mutacions només amb Origin propi i capçalera personalitzada (impedeix CSRF entre orígens).
-        var api = app.MapGroup("/api/sessions").AddEndpointFilter(async (ctx, next) =>
-        {
-            var req = ctx.HttpContext.Request;
-            if (!HttpMethods.IsGet(req.Method))
-            {
-                var options = ctx.HttpContext.RequestServices.GetRequiredService<WebSshOptions>();
-                if (!OriginPolicy.IsAllowed(req, options) || req.Headers["X-Requested-With"] != "WebSsh")
-                    return Results.StatusCode(StatusCodes.Status403Forbidden);
-            }
-            return await next(ctx);
-        });
+        var api = app.MapGroup("/api/sessions").WithApiGuard();
 
         api.MapGet("", async (HttpContext ctx, UserManager<AppUser> um, TerminalSessionService sessions, LiveSessions live) =>
         {

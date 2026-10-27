@@ -14,3 +14,9 @@ bin/
 obj/
 __pycache__/
 *.pyc
+node_modules/
+*.db
+*.db-shm
+*.db-wal
+test-results/
+.dev/

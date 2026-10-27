@@ -123,7 +123,9 @@ app.MapGet("/health/live", () => Results.Text("""{"status":"ok"}""", "applicatio
 app.MapGet("/health/ready", () => Results.Text($$"""{"status":"ok","revision":"{{BuildInfo.Revision}}"}""", "application/json")).AllowAnonymous();
 
 app.MapAccountEndpoints();
+app.MapAdminIdentityEndpoints();
 app.MapTerminalEndpoints();
+app.MapSftpEndpoints();
 app.MapStaticAssets().AllowAnonymous();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

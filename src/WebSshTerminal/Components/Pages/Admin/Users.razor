@@ -4,6 +4,7 @@
 @using Microsoft.EntityFrameworkCore
 @using WebSshTerminal.Data
 @inject UserManager<AppUser> UserMgr
+@inject AppDbContext Db
 
 <PageTitle>Usuaris</PageTitle>
 
@@ -24,13 +25,26 @@
     </form>
 
     <table class="user-table">
-        <thead><tr><th>Usuari</th><th>Rol</th><th>Estat</th><th>Accions</th></tr></thead>
+        <thead><tr><th>Usuari</th><th>Rol</th><th>Identitat SSH</th><th>Estat</th><th>Accions</th></tr></thead>
         <tbody>
         @foreach (var u in _rows)
         {
             <tr>
                 <td>@u.Name</td>
                 <td>@u.Role</td>
+                <td>
+                    <form method="post" action="/admin/users/@u.Id/identity" class="inline">
+                        <AntiforgeryToken />
+                        <select name="identityId" aria-label="Identitat SSH de @u.Name">
+                            <option value="">(cap)</option>
+                            @foreach (var i in _identities.Where(i => i.Free || i.Id == u.IdentityId))
+                            {
+                                <option value="@i.Id" selected="@(i.Id == u.IdentityId)">@i.Name (@i.LinuxUser)</option>
+                            }
+                        </select>
+                        <button>Assigna</button>
+                    </form>
+                </td>
                 <td>@(u.Disabled ? "Desactivat" : u.MustChange ? "Pendent de canvi de contrasenya" : "Actiu")</td>
                 <td>
                     <form method="post" action="/admin/users/@u.Id/reset" class="inline"><AntiforgeryToken /><button>Reinicia contrasenya</button></form>
@@ -49,15 +63,19 @@
 @code {
     [SupplyParameterFromQuery] public string? Error { get; set; }
 
-    private sealed record Row(string Id, string Name, string Role, bool Disabled, bool MustChange);
+    private sealed record Row(string Id, string Name, string Role, bool Disabled, bool MustChange, Guid? IdentityId);
+    private sealed record Ident(Guid Id, string Name, string LinuxUser, bool Free);
+    private List<Ident> _identities = [];
     private readonly List<Row> _rows = [];
 
     protected override async Task OnInitializedAsync()
     {
+        var assigned = (await UserMgr.Users.Where(u => u.SshIdentityId != null).Select(u => u.SshIdentityId!.Value).ToListAsync()).ToHashSet();
+        _identities = (await Db.SshIdentities.OrderBy(i => i.Name).ToListAsync()).Select(i => new Ident(i.Id, i.Name, i.LinuxUser, !assigned.Contains(i.Id))).ToList();
         foreach (var u in await UserMgr.Users.OrderBy(u => u.UserName).ToListAsync())
         {
             var roles = await UserMgr.GetRolesAsync(u);
-            _rows.Add(new Row(u.Id, u.UserName ?? "", string.Join(", ", roles), u.LockoutEnd is { } e && e > DateTimeOffset.UtcNow.AddYears(50), u.MustChangePassword));
+            _rows.Add(new Row(u.Id, u.UserName ?? "", string.Join(", ", roles), u.LockoutEnd is { } e && e > DateTimeOffset.UtcNow.AddYears(50), u.MustChangePassword, u.SshIdentityId));
         }
     }
 }

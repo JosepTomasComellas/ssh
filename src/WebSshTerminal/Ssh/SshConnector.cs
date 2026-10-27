@@ -34,7 +34,13 @@ public sealed class SshConnector(WebSshOptions options, CredentialProtector prot
     private static readonly string[] Macs =
         ["hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com", "hmac-sha2-256", "hmac-sha2-512"];
 
-    public async Task<SshClient> ConnectAsync(SshIdentity identity, CancellationToken ct)
+    public Task<SshClient> ConnectAsync(SshIdentity identity, CancellationToken ct) =>
+        ConnectAsync(identity, info => new SshClient(info) { KeepAliveInterval = TimeSpan.FromSeconds(30) }, ct);
+
+    public Task<SftpClient> ConnectSftpAsync(SshIdentity identity, CancellationToken ct) =>
+        ConnectAsync(identity, info => new SftpClient(info) { KeepAliveInterval = TimeSpan.FromSeconds(30), OperationTimeout = TimeSpan.FromSeconds(60) }, ct);
+
+    private async Task<T> ConnectAsync<T>(SshIdentity identity, Func<Renci.SshNet.ConnectionInfo, T> create, CancellationToken ct) where T : BaseClient
     {
         var address = await ResolveAsync(ct);
         var knownHosts = KnownHostsVerifier.LoadFile(options.KnownHostsFile); // es rellegeix: els canvis de l'admin apliquen sense reiniciar
@@ -52,7 +58,7 @@ public sealed class SshConnector(WebSshOptions options, CredentialProtector prot
             Restrict(info.Encryptions.Keys.ToList(), Ciphers, k => info.Encryptions.Remove(k), "cipher");
             Restrict(info.HmacAlgorithms.Keys.ToList(), Macs, k => info.HmacAlgorithms.Remove(k), "mac");
 
-            var client = new SshClient(info) { KeepAliveInterval = TimeSpan.FromSeconds(30) };
+            var client = create(info);
             var hostKeyRejected = false;
             client.HostKeyReceived += (_, e) =>
             {
