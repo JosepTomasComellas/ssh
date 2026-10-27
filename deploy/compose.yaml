@@ -15,17 +15,21 @@ services:
       - /tmp:rw,noexec,nosuid,size=64m,mode=1777
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTP_PORTS: "8080;9091"   # 9091 = gestió (mètriques): mai es publica
       DOTNET_EnableDiagnostics: "0"
       HOME: /tmp
+      TZ: ${TZ:-Europe/Madrid}
       AllowedHosts: ${DOMAIN:?Set a domain}
       WebSsh__PublicUrl: https://${DOMAIN}
       WebSsh__TrustedProxies: ${TRUSTED_PROXIES:?Set exact proxy IP addresses}
-      WebSsh__DataPath: /var/lib/web-ssh-terminal
+      WebSsh__DataDirectory: /var/lib/web-ssh-terminal
       WebSsh__AppKeyFile: /run/secrets/app_key
       WebSsh__BootstrapPasswordFile: /run/secrets/bootstrap_password
       WebSsh__SshCredentialsFile: /run/secrets/ssh_credentials
       WebSsh__KnownHostsFile: /run/secrets/known_hosts
+      WebSsh__SshHost: ${SSH_HOST:?Set the single SSH server host}
+      WebSsh__SshPort: ${SSH_PORT:-22}
+      WebSsh__MetricsPort: "9091"
       WebSsh__SourceUrl: ${SOURCE_URL:?Set source revision URL}
     volumes:
       - type: bind
