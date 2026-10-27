@@ -1,0 +1,26 @@
+name: Deployment checks
+on:
+  push:
+    branches: ['**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  deployment:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y age shellcheck
+      - run: shellcheck scripts/*.sh
+      - run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - run: python3 tests/compose_check.py
+      - run: python3 tests/proxy_smoke.py
+      - name: Scaffold must fail closed
+        run: |
+          if python3 -c 'import json; exit(json.load(open("deploy/application.json"))["status"] != "scaffold")'; then
+            if python3 scripts/manage.py check-release; then
+              echo 'ERROR: scaffold was incorrectly accepted'; exit 1
+            fi
+          fi

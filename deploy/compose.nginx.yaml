@@ -1,0 +1,4 @@
+services:
+  app:
+    ports:
+      - "127.0.0.1:${HTTP_PORT:?Set loopback port}:8080"

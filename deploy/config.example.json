@@ -1,0 +1,11 @@
+{
+  "domain": "ssh.example.com",
+  "proxy": "nginx",
+  "http_port": 18080,
+  "proxy_network": "web",
+  "traefik_resolver": "letsencrypt",
+  "trusted_proxies": ["172.30.50.1"],
+  "backend_subnet": "172.30.50.0/24",
+  "backup_recipient": "REPLACE_WITH_AGE_PUBLIC_RECIPIENT",
+  "verify_signed_tags": false
+}

@@ -1,0 +1,16 @@
+{
+  "status": "scaffold",
+  "project": "src/WebSshTerminal/WebSshTerminal.csproj",
+  "data_epoch": 1,
+  "sdk_image": null,
+  "runtime_image": null,
+  "release_checks": {
+    "authentication_and_authorization": false,
+    "ssh_host_key_validation": false,
+    "websocket_origin_and_session_isolation": false,
+    "secrets_and_persistent_data": false,
+    "healthcheck_and_graceful_shutdown": false,
+    "backup_restore_and_backward_compatibility": false,
+    "tuteapps_and_source_link": false
+  }
+}
