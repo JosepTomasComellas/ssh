@@ -32,7 +32,7 @@ Genera `app_key`, `bootstrap_password` i `metrics_token` (propietari UID 1654, m
 
 | Camp | Valor |
 |---|---|
-| `domain` | el teu domini (p. ex. `ssh.exemple.cat`) |
+| `domain` | el teu domini (per a aquesta instal·lació: `ssh.sdslab.cat`) |
 | `proxy` | `traefik` |
 | `proxy_network` | nom de la xarxa externa de Traefik (`docker network ls`) |
 | `traefik_resolver` | nom del *certresolver* configurat a Traefik |

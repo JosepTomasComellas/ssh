@@ -1,5 +1,5 @@
 {
-  "domain": "ssh.example.com",
+  "domain": "ssh.sdslab.cat",
   "proxy": "traefik",
   "http_port": 18080,
   "proxy_network": "web",
