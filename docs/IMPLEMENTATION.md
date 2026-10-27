@@ -24,17 +24,16 @@ Linux o servidor SSH reals.
 
 | Fase | Estat | Evidència |
 |---|---|---|
-| 1. Esquelet .NET 10 / Blazor / MudBlazor | **implementada** | `dotnet build -c Release` 0 avisos; 12 tests |
-| 2. Comptes i autorització | pendent | — |
-| 3. SSH, PTY, tmux | pendent | — |
-| 4. Credencials, SFTP, auditoria, porta-retalls | pendent | — |
-| 5. UI i marca (xterm.js, i18n) | parcial: crèdit TuteApps i enllaç a codi/llicència | proves visuals pendents |
-| 6. Mètriques Prometheus/Grafana | pendent (`prometheus-net.AspNetCore` 8.2.1; l'exporter d'OpenTelemetry només és beta) | — |
-| 7. Defensa i qualitat | pendent | — |
-| 8. Docker Desktop i e2e | pendent | — |
-| 9. Desplegament Linux | existent (PR #1), pendent d'integrar | — |
-| 10. Revisió final i README | pendent | — |
-
+| 1. Esquelet .NET 10 / Blazor / MudBlazor | **implementada** | build Release 0 avisos |
+| 2. Comptes i autorització | **implementada** (TOTP només documentat/preparat) | tests d'Auth: login, lockout, rate limit, rols, revocació, reinici de contrasenya |
+| 3. SSH, PTY, tmux | **implementada** | tests contra OpenSSH+tmux real (Docker): PTY, resize, reattach, host key, aïllament, origen |
+| 4. Credencials, SFTP, auditoria, porta-retalls | **implementada** | tests SFTP (traversal, symlinks, límits, overwrite) i «cap secret a BD/logs» |
+| 5. UI i marca | **implementada** (català; castellà pendent) | e2e Playwright ample/estret, teclat, tooltip TuteApps |
+| 6. Mètriques Prometheus/Grafana | **implementada**; dashboard no validat amb dades reals | tests de scrape, token, cardinalitat, absència de PII |
+| 7. Defensa i qualitat | **parcial**: pendents escàner de dependències, `dotnet format`, llista de riscos | — |
+| 8. Docker Desktop i e2e | **parcial**: e2e 7/7 amb Nginx i amb Traefik | pendents: reinici/persistència, còpia/restauració, rollback, secrets amb permisos dolents, perfil monitoring |
+| 9. Desplegament Linux | **pendent d'adaptar**: `deploy/compose.yaml` usa `WebSsh__DataPath` (l'app llegeix `DataDirectory`), falten MetricsPort/TZ; `tests/test_deployment.py` no s'executa a Windows (`fcntl`); `application.json` continua en `scaffold` | — |
+| 10. README i revisió final | **pendent** | el README encara descriu «infraestructura preparada» |
 ## Decisions
 
 - **Biblioteca SSH:** SSH.NET 2026.0.0 (llicència MIT, mantinguda). Pendent de
