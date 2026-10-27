@@ -39,4 +39,4 @@ jobs:
           echo "$out"
           echo "$out" | grep -q "has no vulnerable packages"
       - name: Tests (the OpenSSH and tmux fixture runs in Docker)
-        run: dotnet test -c Release --nologo -v q
+        run: dotnet test -c Release --nologo --logger "console;verbosity=normal"

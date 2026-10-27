@@ -26,6 +26,7 @@ public sealed class TestEnv : IDisposable
     {
         var p = Path.Combine(Dir, name);
         File.WriteAllText(p, content);
+        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(p, UnixFileMode.UserRead | UnixFileMode.UserWrite); // l'app rebutja secrets llegibles per «others»
         return p;
     }
 
