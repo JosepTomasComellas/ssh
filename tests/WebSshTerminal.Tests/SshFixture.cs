@@ -69,7 +69,10 @@ public sealed class SshFixture : IAsyncLifetime
     {
         using var p = Process.Start(new ProcessStartInfo("docker", args)
         {
-            RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
         })!;
         var stdout = p.StandardOutput.ReadToEndAsync();
         var stderr = p.StandardError.ReadToEndAsync();

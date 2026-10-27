@@ -30,10 +30,10 @@ Linux o servidor SSH reals.
 | 4. Credencials, SFTP, auditoria, porta-retalls | **implementada** | tests SFTP (traversal, symlinks, límits, overwrite) i «cap secret a BD/logs» |
 | 5. UI i marca | **implementada** (català; castellà pendent) | e2e Playwright ample/estret, teclat, tooltip TuteApps |
 | 6. Mètriques Prometheus/Grafana | **implementada**; dashboard no validat amb dades reals | tests de scrape, token, cardinalitat, absència de PII |
-| 7. Defensa i qualitat | **parcial**: pendents escàner de dependències, `dotnet format`, llista de riscos | — |
-| 8. Docker Desktop i e2e | **parcial**: e2e 7/7 amb Nginx i amb Traefik | pendents: reinici/persistència, còpia/restauració, rollback, secrets amb permisos dolents, perfil monitoring |
-| 9. Desplegament Linux | **pendent d'adaptar**: `deploy/compose.yaml` usa `WebSsh__DataPath` (l'app llegeix `DataDirectory`), falten MetricsPort/TZ; `tests/test_deployment.py` no s'executa a Windows (`fcntl`); `application.json` continua en `scaffold` | — |
-| 10. README i revisió final | **pendent** | el README encara descriu «infraestructura preparada» |
+| 7. Defensa i qualitat | **parcial**: `dotnet format` net, escaneig NuGet/npm sense troballes; pendent llista formal de riscos | `dotnet list package --vulnerable`, `npm audit` |
+| 8. Docker Desktop i e2e | **implementada** amb Nginx i Traefik; pendents: rollback del mateix `data_epoch`, host key alterada a l'e2e, perfil monitoring no verificat | e2e 7/7 (nginx i traefik); `tests/ops_test.py` 4/4 |
+| 9. Desplegament Linux | **parcial**: Compose alineat amb l'app (validat amb `compose config`); pendents: `application.json` en `scaffold`, `tests/application-release.sh`, CI, `test_deployment.py` a Linux | — |
+| 10. README i revisió final | **parcial**: README reescrit; pendents alinear `docs/APPLICATION.md` i guies d'operació | — |
 ## Decisions
 
 - **Biblioteca SSH:** SSH.NET 2026.0.0 (llicència MIT, mantinguda). Pendent de

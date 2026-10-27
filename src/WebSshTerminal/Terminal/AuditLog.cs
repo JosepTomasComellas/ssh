@@ -33,8 +33,12 @@ public sealed class AuditLog(AppDbContext db)
     {
         db.AuditEvents.Add(new AuditEvent
         {
-            TimeUtc = DateTime.UtcNow, ActorUserId = actorUserId, SessionId = sessionId,
-            Operation = operation, Result = result, Amount = amount,
+            TimeUtc = DateTime.UtcNow,
+            ActorUserId = actorUserId,
+            SessionId = sessionId,
+            Operation = operation,
+            Result = result,
+            Amount = amount,
         });
         await db.SaveChangesAsync();
     }
