@@ -59,6 +59,7 @@ public static class TerminalEndpoints
             if (!ctx.WebSockets.IsWebSocketRequest) return Results.StatusCode(StatusCodes.Status426UpgradeRequired);
             if (!OriginPolicy.IsAllowed(ctx.Request, options))
             {
+                AppMetrics.Rejections.WithLabels("origin").Inc();
                 Log.WebSocketRejected(logger, "origin");
                 return Results.StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -67,6 +68,7 @@ public static class TerminalEndpoints
             var session = await sessions.GetOwnedAsync(userId, id); // sessió aliena = inexistent
             if (session is null)
             {
+                AppMetrics.Rejections.WithLabels("not-owner").Inc();
                 Log.WebSocketRejected(logger, "not-owner");
                 return Results.NotFound();
             }
@@ -74,6 +76,7 @@ public static class TerminalEndpoints
             if (identity is null) return Results.Problem(statusCode: StatusCodes.Status409Conflict);
             if (live.Count >= options.MaxTotalSessions && !live.IsLive(session.Id))
             {
+                AppMetrics.Rejections.WithLabels("capacity").Inc();
                 await audit.RecordAsync(AuditOps.SessionAttach, AuditResults.Limit, userId, session.Id);
                 return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
             }
@@ -96,8 +99,21 @@ public static class TerminalEndpoints
                 using var registration = live.Register(session.Id, cts);
                 await audit.RecordAsync(AuditOps.SessionAttach, AuditResults.Ok, userId, session.Id);
                 Log.TerminalAttached(logger, live.Count);
+                AppMetrics.Attaches.WithLabels(session.LastSeenUtc - session.CreatedUtc > TimeSpan.FromSeconds(1) ? "resume" : "new").Inc();
+                AppMetrics.ActiveSessions.Inc();
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
 
-                var end = await TerminalBridge.RunAsync(ws, client, session.TmuxName, TimeSpan.FromMinutes(options.IdleTimeoutMinutes), cts.Token);
+                BridgeEnd end;
+                try
+                {
+                    end = await TerminalBridge.RunAsync(ws, client, session.TmuxName, TimeSpan.FromMinutes(options.IdleTimeoutMinutes), cts.Token);
+                }
+                finally
+                {
+                    AppMetrics.ActiveSessions.Dec();
+                    AppMetrics.SessionDuration.Observe(System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalSeconds);
+                }
+                AppMetrics.Detaches.WithLabels(end.ToString().ToLowerInvariant()).Inc();
 
                 await audit.RecordAsync(AuditOps.SessionDetach, AuditResults.Ok, userId, session.Id);
                 if (end == BridgeEnd.RemoteExit) await sessions.MarkClosedAsync(session, userId); // tmux ha acabat

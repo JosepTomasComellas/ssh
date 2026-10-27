@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.HttpOverrides;
 using MudBlazor.Services;
+using Prometheus;
 using WebSshTerminal.Auth;
 using WebSshTerminal.Components;
 using WebSshTerminal.Configuration;
@@ -68,12 +69,16 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 var app = builder.Build();
 
+// Port de gestió: només /metrics, abans de qualsevol altre middleware.
+app.MapWhen(c => MetricsEndpoint.IsManagementRequest(c, options.MetricsPort), b => b.Run(ctx => MetricsEndpoint.HandleAsync(ctx, secrets.MetricsToken)));
+
 app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
+app.UseHttpMetrics(o => o.ReduceStatusCodeCardinality());
 app.UseRouting(); // explícit: rate limiter, autorització i antiforgery necessiten l'endpoint ja resolt
 
 // Les pàgines d'estat només per a la UI: re-executar /not-found amb DELETE/POST de l'API

@@ -8,6 +8,7 @@ public sealed partial class AppSecrets
 {
     public required byte[] AppKey { get; init; }
     public required string BootstrapPassword { get; init; }
+    public string? MetricsToken { get; init; }
 
     public static AppSecrets Load(WebSshOptions o, ICollection<string> errors)
     {
@@ -22,7 +23,13 @@ public sealed partial class AppSecrets
         var boot = ReadFile(o.BootstrapPasswordFile, "BootstrapPasswordFile", errors)?.Trim() ?? "";
         ReadFile(o.SshCredentialsFile, "SshCredentialsFile", errors);
         ReadFile(o.KnownHostsFile, "KnownHostsFile", errors);
-        return new AppSecrets { AppKey = keyBytes, BootstrapPassword = boot };
+        string? metricsToken = null;
+        if (o.MetricsTokenFile.Length > 0)
+        {
+            metricsToken = ReadFile(o.MetricsTokenFile, "MetricsTokenFile", errors)?.Trim();
+            if (metricsToken is { Length: < 32 }) errors.Add("WebSsh:MetricsTokenFile: el token ha de tenir almenys 32 caràcters.");
+        }
+        return new AppSecrets { AppKey = keyBytes, BootstrapPassword = boot, MetricsToken = metricsToken };
     }
 
     private static string? ReadFile(string path, string name, ICollection<string> errors)

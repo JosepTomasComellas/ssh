@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Net.Http.Headers;
 using WebSshTerminal.Configuration;
 using WebSshTerminal.Data;
+using WebSshTerminal.Infrastructure;
 using WebSshTerminal.Ssh;
 
 namespace WebSshTerminal.Terminal;
@@ -39,6 +40,7 @@ public static class SftpEndpoints
                 if (attrs is null || !attrs.IsRegularFile) return Results.NotFound();
                 if (attrs.Length > options.MaxTransferBytes)
                 {
+                    AppMetrics.Transfers.WithLabels("download", "limit").Inc();
                     await audit.RecordAsync(AuditOps.SftpDownload, AuditResults.Limit, userId);
                     return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
                 }
@@ -58,6 +60,8 @@ public static class SftpEndpoints
                         sent += n;
                     }
                 }
+                AppMetrics.Transfers.WithLabels("download", "ok").Inc();
+                AppMetrics.TransferBytes.WithLabels("download").Inc(sent);
                 await audit.RecordAsync(AuditOps.SftpDownload, AuditResults.Ok, userId, amount: sent);
                 return Results.Empty;
             }));
@@ -89,6 +93,7 @@ public static class SftpEndpoints
                             if (received > options.MaxTransferBytes)
                             {
                                 s.Client.DeleteFile(temp);
+                                AppMetrics.Transfers.WithLabels("upload", "limit").Inc();
                                 await audit.RecordAsync(AuditOps.SftpUpload, AuditResults.Limit, userId);
                                 return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
                             }
@@ -103,6 +108,8 @@ public static class SftpEndpoints
                     if (s.Client.Exists(temp)) s.Client.DeleteFile(temp);
                     throw;
                 }
+                AppMetrics.Transfers.WithLabels("upload", "ok").Inc();
+                AppMetrics.TransferBytes.WithLabels("upload").Inc(received);
                 await audit.RecordAsync(AuditOps.SftpUpload, AuditResults.Ok, userId, amount: received);
                 return Results.StatusCode(StatusCodes.Status201Created);
             }));

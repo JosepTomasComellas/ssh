@@ -29,6 +29,7 @@ public static class AccountEndpoints
             }
 
             var result = await signIn.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: true);
+            AppMetrics.Logins.WithLabels(result.Succeeded ? "ok" : result.IsLockedOut ? "locked" : "failed").Inc();
             if (result.IsLockedOut) Log.LockedOut(logger);
             if (!result.Succeeded) return Results.Redirect("/login?error=1");
 

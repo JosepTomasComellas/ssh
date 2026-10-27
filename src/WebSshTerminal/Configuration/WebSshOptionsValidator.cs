@@ -34,6 +34,8 @@ public static partial class WebSshOptionsValidator
         }
 
         ParseProxies(o.TrustedProxies, errors);
+        if (o.MetricsPort is < 0 or > 65535) errors.Add("WebSsh:MetricsPort fora de rang.");
+        if (o.MetricsTokenFile.Length > 0 && !Path.IsPathRooted(o.MetricsTokenFile)) errors.Add("WebSsh:MetricsTokenFile ha de ser una ruta absoluta.");
 
         if (o.MaxSessionsPerUser is < 1 or > 20) errors.Add("WebSsh:MaxSessionsPerUser ha d'estar entre 1 i 20.");
         if (o.MaxTotalSessions < o.MaxSessionsPerUser || o.MaxTotalSessions > 200) errors.Add("WebSsh:MaxTotalSessions fora de rang.");

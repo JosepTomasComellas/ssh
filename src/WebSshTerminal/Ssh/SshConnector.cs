@@ -69,6 +69,7 @@ public sealed class SshConnector(WebSshOptions options, CredentialProtector prot
             try
             {
                 await Task.Run(client.Connect, ct);
+                AppMetrics.SshConnections.WithLabels("success").Inc();
                 return client;
             }
             catch (Exception ex)
@@ -78,6 +79,7 @@ public sealed class SshConnector(WebSshOptions options, CredentialProtector prot
                     : ex is SshAuthenticationException ? SshFailure.AuthFailed
                     : ex is SocketException or SshOperationTimeoutException or SshConnectionException ? SshFailure.Unreachable
                     : SshFailure.Other;
+                AppMetrics.SshConnections.WithLabels(failure.ToString().ToLowerInvariant()).Inc();
                 Log.SshConnectFailed(logger, failure.ToString());
                 throw new SshConnectException(failure);
             }

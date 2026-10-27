@@ -15,6 +15,10 @@ public sealed class WebSshOptions
     public string SshCredentialsFile { get; set; } = "";
     public string AppKeyFile { get; set; } = "";
     public string BootstrapPasswordFile { get; set; } = "";
+    /// <summary>Opcional: bearer token del scrape de mètriques (obligatori si Prometheus és en una xarxa compartida).</summary>
+    public string MetricsTokenFile { get; set; } = "";
+    /// <summary>Port de gestió de /metrics (0 = desactivat). No es publica al host ni al proxy.</summary>
+    public int MetricsPort { get; set; } = 9091;
 
     /// <summary>IP exactes de proxys de confiança, separades per comes.</summary>
     public string TrustedProxies { get; set; } = "";
