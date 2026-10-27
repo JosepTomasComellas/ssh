@@ -24,7 +24,7 @@ public sealed class TestEnv : IDisposable
             ["WebSsh:SshHost"] = "ssh-fixture",
             ["WebSsh:DataDirectory"] = Dir,
             ["WebSsh:AppKeyFile"] = F("app_key", new string('a', 64)),
-            ["WebSsh:BootstrapPasswordFile"] = F("bootstrap", "x"),
+            ["WebSsh:BootstrapPasswordFile"] = F("bootstrap", TestApp.BootstrapPassword),
             ["WebSsh:SshCredentialsFile"] = F("ssh_credentials", "{}"),
             ["WebSsh:KnownHostsFile"] = F("known_hosts", ""),
         };
@@ -40,10 +40,12 @@ public sealed class TestEnv : IDisposable
     public void Dispose()
     {
         foreach (var k in Settings().Keys) Environment.SetEnvironmentVariable(k.Replace(":", "__", StringComparison.Ordinal), null);
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); // allibera webssh.db abans d'esborrar
         Directory.Delete(Dir, recursive: true);
     }
 }
 
+[Collection("env")]
 public class StartupTests
 {
     [Fact]

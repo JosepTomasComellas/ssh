@@ -1,0 +1,28 @@
+@page "/login"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+
+<PageTitle>Inici de sessió</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-8">
+    <MudPaper Class="pa-6">
+        <h1 class="mud-typography mud-typography-h5">Inici de sessió</h1>
+        @if (Error is not null)
+        {
+            <div role="alert" class="form-error">Usuari o contrasenya incorrectes, o compte bloquejat temporalment.</div>
+        }
+        <form method="post" action="/account/login" class="plain-form">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            <label for="username">Usuari</label>
+            <input id="username" name="username" autocomplete="username" required autofocus />
+            <label for="password">Contrasenya</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+            <button type="submit">Entra</button>
+        </form>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery] public string? Error { get; set; }
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+}

@@ -1,0 +1,63 @@
+@page "/admin/users"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = WebSshTerminal.Auth.AuthSetup.AdminPolicy)]
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebSshTerminal.Data
+@inject UserManager<AppUser> UserMgr
+
+<PageTitle>Usuaris</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <h1 class="mud-typography mud-typography-h5">Usuaris</h1>
+    @if (Error is not null)
+    {
+        <div role="alert" class="form-error">No s'ha pogut completar l'acció.</div>
+    }
+
+    <form method="post" action="/admin/users" class="plain-form inline">
+        <AntiforgeryToken />
+        <label for="username">Nou usuari</label>
+        <input id="username" name="username" required maxlength="64" />
+        <label for="role">Rol</label>
+        <select id="role" name="role"><option value="user">Usuari</option><option value="admin">Administrador</option></select>
+        <button type="submit">Crea</button>
+    </form>
+
+    <table class="user-table">
+        <thead><tr><th>Usuari</th><th>Rol</th><th>Estat</th><th>Accions</th></tr></thead>
+        <tbody>
+        @foreach (var u in _rows)
+        {
+            <tr>
+                <td>@u.Name</td>
+                <td>@u.Role</td>
+                <td>@(u.Disabled ? "Desactivat" : u.MustChange ? "Pendent de canvi de contrasenya" : "Actiu")</td>
+                <td>
+                    <form method="post" action="/admin/users/@u.Id/reset" class="inline"><AntiforgeryToken /><button>Reinicia contrasenya</button></form>
+                    <form method="post" action="/admin/users/@u.Id/revoke" class="inline"><AntiforgeryToken /><button>Revoca sessions</button></form>
+                    <form method="post" action="/admin/users/@u.Id/disable" class="inline">
+                        <AntiforgeryToken /><input type="hidden" name="disable" value="@((!u.Disabled).ToString().ToLowerInvariant())" />
+                        <button>@(u.Disabled ? "Activa" : "Desactiva")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery] public string? Error { get; set; }
+
+    private sealed record Row(string Id, string Name, string Role, bool Disabled, bool MustChange);
+    private readonly List<Row> _rows = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var u in await UserMgr.Users.OrderBy(u => u.UserName).ToListAsync())
+        {
+            var roles = await UserMgr.GetRolesAsync(u);
+            _rows.Add(new Row(u.Id, u.UserName ?? "", string.Join(", ", roles), u.LockoutEnd is { } e && e > DateTimeOffset.UtcNow.AddYears(50), u.MustChangePassword));
+        }
+    }
+}

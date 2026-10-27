@@ -13,6 +13,19 @@
             <img src="@Options.Branding.LogoUrl" alt="" class="instance-logo" />
         }
         <MudText Typo="Typo.h6" Class="ml-2">@Options.Branding.Name</MudText>
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <AuthorizeView Policy="@WebSshTerminal.Auth.AuthSetup.AdminPolicy" Context="adminCtx">
+                    <a href="/admin/users" class="appbar-link">Usuaris</a>
+                </AuthorizeView>
+                <span class="appbar-link">@context.User.Identity?.Name</span>
+                <form method="post" action="/account/logout" class="inline">
+                    <AntiforgeryToken />
+                    <button type="submit" class="appbar-link">Surt</button>
+                </form>
+            </Authorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudMainContent Class="main-with-credit">
         @Body
