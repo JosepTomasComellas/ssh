@@ -90,7 +90,8 @@ def application(repo, release=False):
 def validate_config(cfg):
     require(isinstance(cfg, dict), "Config must be a JSON object")
     expected = {"domain", "proxy", "http_port", "proxy_network", "traefik_resolver",
-                "trusted_proxies", "backend_subnet", "backup_recipient", "verify_signed_tags"}
+                "trusted_proxies", "backend_subnet", "backup_recipient", "verify_signed_tags",
+                "ssh_host", "ssh_port", "timezone"}
     require(set(cfg) == expected, "Unknown or missing configuration keys")
     domain = cfg["domain"]
     require(isinstance(domain, str) and len(domain) <= 253 and
@@ -106,6 +107,10 @@ def validate_config(cfg):
     subnet = ipaddress.ip_network(cfg["backend_subnet"])
     require(subnet.version == 4 and 16 <= subnet.prefixlen <= 28, "Use an IPv4 backend subnet /16../28")
     require(type(cfg["verify_signed_tags"]) is bool, "verify_signed_tags must be boolean")
+    require(isinstance(cfg["ssh_host"], str) and re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?", cfg["ssh_host"]),
+            "Invalid ssh_host (plain host name or IP, no scheme/user/port)")
+    require(type(cfg["ssh_port"]) is int and 1 <= cfg["ssh_port"] <= 65535, "Invalid ssh_port")
+    require(isinstance(cfg["timezone"], str) and re.fullmatch(r"[A-Za-z0-9_+/-]{1,64}", cfg["timezone"]), "Invalid timezone")
     require(isinstance(cfg["backup_recipient"], str) and
             re.fullmatch(r"age1[0-9a-z]{58}", cfg["backup_recipient"]), "Set an age public backup recipient")
     return cfg
@@ -151,7 +156,7 @@ class Controller:
         os.chown(self.root / "data", UID, UID)
         shutil.copyfile(HERE / "deploy/config.example.json", self.root / "config.json")
         (self.root / "config.json").chmod(0o600)
-        for name in ("app_key", "bootstrap_password"):
+        for name in ("app_key", "bootstrap_password", "metrics_token"):
             target = self.root / "secrets" / name
             target.write_text(secrets.token_hex(32) + "\n", encoding="ascii")
             os.chown(target, UID, UID)
@@ -165,7 +170,7 @@ class Controller:
     def preflight(self):
         for command in ("docker", "git", "age", "tar"):
             require(shutil.which(command), "Missing prerequisite: " + command)
-        for name in ("app_key", "bootstrap_password", "ssh_credentials", "known_hosts"):
+        for name in ("app_key", "bootstrap_password", "metrics_token", "ssh_credentials", "known_hosts"):
             safe_file(self.root / "secrets" / name, UID, 0o400)
         info = (self.root / "data").stat()
         require(info.st_uid == UID and stat.S_IMODE(info.st_mode) == 0o700, "Data directory must be UID 1654 mode 0700")
@@ -218,7 +223,8 @@ class Controller:
             "PROXY_NETWORK": cfg["proxy_network"], "TRAEFIK_RESOLVER": cfg["traefik_resolver"],
             "TRUSTED_PROXIES": ",".join(cfg["trusted_proxies"]), "BACKEND_SUBNET": cfg["backend_subnet"],
             "DATA_DIR": self.root / "data", "SECRETS_DIR": self.root / "secrets",
-            "SOURCE_URL": SOURCE + "/tree/" + commit,
+            "SOURCE_URL": SOURCE + "/tree/" + commit, "SSH_HOST": cfg["ssh_host"], "SSH_PORT": cfg["ssh_port"],
+            "TZ": cfg["timezone"],
         }
         (folder / "compose.env").write_text("".join(f"{k}='{v}'\n" for k, v in variables.items()), encoding="utf-8")
         (folder / "compose.env").chmod(0o600)

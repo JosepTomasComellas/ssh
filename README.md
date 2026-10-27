@@ -53,7 +53,7 @@ Navegador ──HTTPS/WSS──▶ Nginx o Traefik ──▶ App (ASP.NET Core 1
 | Què aixeca Compose | app, servidor SSH de proves, Nginx *o* Traefik de proves | només l'app (port a `127.0.0.1`) | només l'app, a la xarxa de Traefik |
 | Domini / TLS | `https://localhost:8443`, certificat autosignat | el teu domini, certificat teu (p. ex. Let's Encrypt) | el teu domini, el *certresolver* de Traefik |
 | Servidor SSH | contenidor efímer (comptes `alice`, `bob`) | el teu servidor | el teu servidor |
-| Guia | [Mode local](#mode-local) | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
+| Guia | [Mode local](#mode-local) | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | [docs/DEPLOY-TRAEFIK.md](docs/DEPLOY-TRAEFIK.md) |
 
 El Compose **no configura** el teu Nginx/Traefik, el DNS, el certificat ni el firewall: això és responsabilitat
 de l'administrador (plantilla Nginx a [deploy/nginx](deploy/nginx/webssh.conf.template), etiquetes a

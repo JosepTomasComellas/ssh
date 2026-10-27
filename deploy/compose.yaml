@@ -18,7 +18,7 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080;9091"   # 9091 = gestió (mètriques): mai es publica
       DOTNET_EnableDiagnostics: "0"
       HOME: /tmp
-      TZ: ${TZ:-Europe/Madrid}
+      TZ: ${TZ:?Set timezone}
       AllowedHosts: ${DOMAIN:?Set a domain}
       WebSsh__PublicUrl: https://${DOMAIN}
       WebSsh__TrustedProxies: ${TRUSTED_PROXIES:?Set exact proxy IP addresses}
@@ -28,8 +28,9 @@ services:
       WebSsh__SshCredentialsFile: /run/secrets/ssh_credentials
       WebSsh__KnownHostsFile: /run/secrets/known_hosts
       WebSsh__SshHost: ${SSH_HOST:?Set the single SSH server host}
-      WebSsh__SshPort: ${SSH_PORT:-22}
+      WebSsh__SshPort: ${SSH_PORT:?Set SSH port}
       WebSsh__MetricsPort: "9091"
+      WebSsh__MetricsTokenFile: /run/secrets/metrics_token  # obligatori: l'app comparteix xarxa amb el proxy
       WebSsh__SourceUrl: ${SOURCE_URL:?Set source revision URL}
     volumes:
       - type: bind
@@ -37,7 +38,7 @@ services:
         target: /var/lib/web-ssh-terminal
         bind:
           create_host_path: false
-    secrets: [app_key, bootstrap_password, ssh_credentials, known_hosts]
+    secrets: [app_key, bootstrap_password, metrics_token, ssh_credentials, known_hosts]
     healthcheck:
       test: [CMD, /app/WebSshTerminal, --healthcheck]
       interval: 10s
@@ -55,6 +56,8 @@ secrets:
     file: ${SECRETS_DIR:?Set secrets directory}/app_key
   bootstrap_password:
     file: ${SECRETS_DIR}/bootstrap_password
+  metrics_token:
+    file: ${SECRETS_DIR}/metrics_token
   ssh_credentials:
     file: ${SECRETS_DIR}/ssh_credentials
   known_hosts:
