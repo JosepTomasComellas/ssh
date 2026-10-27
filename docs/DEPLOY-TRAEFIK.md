@@ -23,7 +23,7 @@ una persona revisi l'evidència, fixi les imatges base per digest i marqui els c
 ## 2. Inicialitzar
 
 ```bash
-sudo python3 scripts/manage.py init      # crea /opt/web-ssh-terminal… (mai sobreescriu); no arrenca res
+sudo python3 scripts/manage.py init      # crea /opt/web-ssh-terminal (mai sobreescriu); no arrenca res
 ```
 
 Genera `app_key`, `bootstrap_password` i `metrics_token` (propietari UID 1654, mode 0400) i un `config.json` d'exemple.
@@ -61,8 +61,11 @@ recreació del contenidor.
 
 ## 5. Desplegar
 
+Si el paquet de GitHub (GHCR) és privat, abans: `echo <PAT amb read:packages> | sudo docker login ghcr.io -u <usuari> --password-stdin`.
+
 ```bash
-sudo python3 scripts/manage.py deploy vX.Y.Z <commit-sha-40> ghcr.io/joseptomascomellas/ssh@sha256:<digest>
+sudo python3 scripts/manage.py deploy --tag vX.Y.Z --commit <commit-sha-40> \
+     --image ghcr.io/joseptomascomellas/ssh@sha256:<digest>
 ```
 
 Fa còpia xifrada, arrenca, espera `/health/ready` local, comprova la **mateixa revisió** per HTTPS i, si falla,
