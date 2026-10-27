@@ -1,0 +1,26 @@
+html, body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }
+
+.instance-logo { height: 32px; }
+
+.main-with-credit { padding-bottom: 88px; }
+
+.source-footer {
+    position: fixed; left: 0; bottom: 0; padding: 6px 16px; font-size: .8rem;
+    background: rgba(255, 255, 255, .85); color: #333; border-top-right-radius: 6px;
+}
+.source-footer a { color: inherit; }
+
+/* Crèdit fix: no depèn del tema ni de la configuració de la instància. */
+.tuteapps-credit {
+    position: fixed; right: 16px; bottom: 16px; z-index: 2000;
+    display: block; line-height: 0; border-radius: 6px;
+}
+.tuteapps-credit img { height: 40px; width: auto; display: block; }
+.tuteapps-credit:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+
+#blazor-error-ui {
+    color-scheme: light only; background: lightyellow; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, .2);
+    box-sizing: border-box; display: none; left: 0; padding: .6rem 1.25rem .7rem 1.25rem; position: fixed;
+    width: 100%; z-index: 1000;
+}
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: .75rem; top: .5rem; }

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WebSshTerminal/WebSshTerminal.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WebSshTerminal.Tests/WebSshTerminal.Tests.csproj" />
+  </Folder>
+</Solution>

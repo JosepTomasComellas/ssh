@@ -1,0 +1,45 @@
+﻿@inherits LayoutComponentBase
+@inject WebSshOptions Options
+
+<MudThemeProvider Theme="@_theme" IsDarkMode="@_dark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        @if (Options.Branding.LogoUrl.Length > 0)
+        {
+            <img src="@Options.Branding.LogoUrl" alt="" class="instance-logo" />
+        }
+        <MudText Typo="Typo.h6" Class="ml-2">@Options.Branding.Name</MudText>
+    </MudAppBar>
+    <MudMainContent Class="main-with-credit">
+        @Body
+    </MudMainContent>
+    <footer class="source-footer">
+        <a href="@Options.SourceUrl" rel="noopener">Codi font</a> ·
+        <a href="@(Options.SourceUrl + "/blob/main/LICENSE")" rel="noopener">Llicència AGPL-3.0</a> ·
+        <span title="Revisió executada">@Revision</span>
+    </footer>
+</MudLayout>
+
+<TuteAppsCredit />
+
+<div id="blazor-error-ui" data-nosnippet>
+    S'ha produït un error inesperat.
+    <a href="." class="reload">Recarrega</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private MudTheme _theme = new();
+    private bool _dark;
+    private string Revision => WebSshTerminal.Infrastructure.BuildInfo.Revision[..12];
+
+    protected override void OnInitialized()
+    {
+        _theme = new MudTheme { PaletteLight = new PaletteLight { Primary = Options.Branding.PrimaryColor } };
+        _dark = Options.Branding.Theme == "dark";
+    }
+}
