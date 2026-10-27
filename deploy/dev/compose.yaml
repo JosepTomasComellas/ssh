@@ -1,0 +1,225 @@
+# ENTORN LOCAL DE DESENVOLUPAMENT I PROVES (Docker Desktop). NO ÉS PER A PRODUCCIÓ.
+# Ús: scripts/dev.py up|test|logs|down|reset   (veure README, secció «Mode local»).
+# Secrets, claus i certificats es generen a .dev/ (ignorat per Git). El servidor SSH és un fixture efímer.
+name: webssh-dev
+
+x-app-env: &app-env
+  ASPNETCORE_ENVIRONMENT: Production
+  ASPNETCORE_HTTP_PORTS: "8080;9091"   # 9091 = port de gestió (mètriques); no es publica
+  DOTNET_EnableDiagnostics: "0"
+  HOME: /tmp
+  TZ: ${TZ:-Europe/Madrid}
+  WebSsh__PublicUrl: https://localhost:8443
+  WebSsh__TrustedProxies: 172.29.0.10,172.29.0.11
+  WebSsh__DataDirectory: /var/lib/web-ssh-terminal
+  WebSsh__AppKeyFile: /run/secrets/app_key
+  WebSsh__BootstrapPasswordFile: /run/secrets/bootstrap_password
+  WebSsh__SshCredentialsFile: /run/secrets/ssh_credentials
+  WebSsh__KnownHostsFile: /run/secrets/known_hosts
+  WebSsh__MetricsTokenFile: /run/secrets/metrics_token
+  WebSsh__SshHost: ssh-fixture
+  WebSsh__SshPort: "22"
+  WebSsh__LoginRateLimitPerMinute: "200"   # només dev: l'e2e fa molts logins des d'una sola IP
+  WebSsh__SourceUrl: https://github.com/JosepTomasComellas/ssh
+  AllowedHosts: localhost
+
+services:
+  # Copia els secrets a un volum amb propietari 1654 i mode 0400 (com a producció) i prepara el volum de dades.
+  init:
+    image: alpine:3.22
+    restart: "no"
+    volumes:
+      - type: bind
+        source: ${DEV_DIR:?Use scripts/dev.py}/secrets
+        target: /src
+        read_only: true
+      - secrets:/dst
+      - data:/data
+    command: >
+      sh -c "cp /src/app_key /src/bootstrap_password /src/ssh_credentials /src/known_hosts /src/metrics_token /dst/ &&
+             chown 1654:1654 /dst/* && chmod 0400 /dst/* &&
+             chown 1654:1654 /data && chmod 0700 /data"
+    networks: [devnet]
+
+  ssh-fixture:
+    build: ../../tests/fixtures/ssh
+    image: webssh-dev-ssh-fixture:latest
+    restart: unless-stopped
+    volumes:
+      - fixture-keys:/keys
+    networks:
+      devnet:
+        ipv4_address: 172.29.0.30
+    healthcheck:
+      test: [CMD-SHELL, "test -f /keys/bob && nc -z 127.0.0.1 22"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/Dockerfile
+      args:
+        REVISION: ${REVISION:?Use scripts/dev.py}
+    image: webssh-app:dev
+    user: "1654:1654"
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 2
+    stop_grace_period: 30s
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    environment: *app-env
+    volumes:
+      - data:/var/lib/web-ssh-terminal
+      - secrets:/run/secrets:ro
+    depends_on:
+      init: { condition: service_completed_successfully }
+      ssh-fixture: { condition: service_healthy }
+    healthcheck:
+      test: [CMD, /app/WebSshTerminal, --healthcheck]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      devnet:
+        ipv4_address: 172.29.0.20
+    labels:
+      # Només els llegeix Traefik quan s'activa el perfil «traefik».
+      traefik.enable: "true"
+      traefik.docker.network: webssh-dev_devnet
+      traefik.http.routers.webssh.rule: Host(`localhost`)
+      traefik.http.routers.webssh.entrypoints: websecure
+      traefik.http.routers.webssh.tls: "true"
+      traefik.http.routers.webssh.service: webssh
+      traefik.http.services.webssh.loadbalancer.server.port: "8080"
+      traefik.http.routers.webssh.middlewares: webssh-headers
+      traefik.http.middlewares.webssh-headers.headers.contentTypeNosniff: "true"
+      traefik.http.middlewares.webssh-headers.headers.frameDeny: "true"
+      traefik.http.middlewares.webssh-headers.headers.referrerPolicy: no-referrer
+    logging:
+      driver: local
+      options: { max-size: 10m, max-file: "3" }
+
+  nginx:
+    profiles: [nginx]
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${DEV_DIR}/certs:/certs:ro
+    ports:
+      - "127.0.0.1:8443:8443"
+    depends_on:
+      app: { condition: service_healthy }
+    healthcheck:
+      test: [CMD-SHELL, "wget -q --no-check-certificate -O /dev/null https://127.0.0.1:8443/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      devnet:
+        ipv4_address: 172.29.0.10
+
+  traefik:
+    profiles: [traefik]
+    image: traefik:v3.6
+    restart: unless-stopped
+    command:
+      - --entrypoints.websecure.address=:8443
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=webssh-dev_devnet
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --ping=true
+      - --log.level=WARN
+    volumes:
+      # PRIVILEGIAT: el socket Docker només es munta aquí (Traefik local, només lectura), mai a l'app.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ${DEV_DIR}/certs:/certs:ro
+    ports:
+      - "127.0.0.1:8443:8443"
+    depends_on:
+      app: { condition: service_healthy }
+    healthcheck:
+      test: [CMD, traefik, healthcheck, --ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      devnet:
+        ipv4_address: 172.29.0.11
+
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=3d
+      - --storage.tsdb.retention.size=500MB
+    volumes:
+      - ../monitoring/prometheus.dev.yml:/etc/prometheus/prometheus.yml:ro
+      - ${DEV_DIR}/monitoring/metrics_token:/run/secrets/metrics_token:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks: [devnet]
+
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:12.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ${DEV_DIR}/monitoring/grafana_admin_password:/run/secrets/grafana_admin_password:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on: [prometheus]
+    networks: [devnet]
+
+  e2e:
+    profiles: [e2e]
+    build: ../../tests/WebSshTerminal.E2E
+    image: webssh-dev-e2e:latest
+    environment:
+      BASE_URL: https://localhost:8443
+      PROXY_HOST: ${E2E_PROXY_HOST:-nginx}
+      BOOTSTRAP_PASSWORD_FILE: /e2e/bootstrap_password
+      FIXTURE_KEYS_DIR: /fixture-keys
+      RESULTS_DIR: /results
+    volumes:
+      - ${DEV_DIR}/secrets/bootstrap_password:/e2e/bootstrap_password:ro
+      - fixture-keys:/fixture-keys:ro
+      - ${DEV_DIR}/test-results:/results
+    networks: [devnet]
+
+volumes:
+  data:
+  secrets:
+  fixture-keys:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  devnet:
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24

@@ -41,6 +41,7 @@ public static partial class WebSshOptionsValidator
         if (o.MaxTotalSessions < o.MaxSessionsPerUser || o.MaxTotalSessions > 200) errors.Add("WebSsh:MaxTotalSessions fora de rang.");
         if (o.IdleTimeoutMinutes is < 1 or > 1440) errors.Add("WebSsh:IdleTimeoutMinutes fora de rang.");
         if (o.MaxTransferBytes is < 1024 or > 2L * 1024 * 1024 * 1024) errors.Add("WebSsh:MaxTransferBytes fora de rang.");
+        if (o.LoginRateLimitPerMinute is < 1 or > 1000) errors.Add("WebSsh:LoginRateLimitPerMinute fora de rang.");
         if (o.ShutdownTimeoutSeconds is < 1 or > 29) errors.Add("WebSsh:ShutdownTimeoutSeconds ha de ser inferior a 30.");
 
         if (!ColorRegex().IsMatch(o.Branding.PrimaryColor)) errors.Add("WebSsh:Branding:PrimaryColor ha de ser #RRGGBB.");

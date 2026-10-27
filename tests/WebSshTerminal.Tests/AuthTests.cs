@@ -167,6 +167,32 @@ public sealed partial class AuthTests
     }
 
     [Fact]
+    public async Task Admin_password_reset_invalidates_old_password_and_forces_change()
+    {
+        using var app = new TestApp();
+        using var admin = app.NewClient();
+        await TestApp.LoginAdminAsync(admin);
+        var created = await TestApp.PostFormAsync(admin, "/admin/users", "/admin/users", new() { ["username"] = "carol", ["role"] = "user" });
+        var first = TempRegex().Match(await created.Content.ReadAsStringAsync()).Groups[1].Value;
+        using (var c = app.NewClient())
+        {
+            await TestApp.LoginAsync(c, "carol", first);
+            await TestApp.PostFormAsync(c, "/account/password", "/password", new() { ["current"] = first, ["next"] = "Carol-Password-1234", ["confirm"] = "Carol-Password-1234" });
+        }
+
+        string id;
+        using (var scope = app.Factory.Services.CreateScope())
+            id = (await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().FindByNameAsync("carol"))!.Id;
+        var reset = await TestApp.PostFormAsync(admin, $"/admin/users/{id}/reset", "/admin/users", new());
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        var temp = TempRegex().Match(await reset.Content.ReadAsStringAsync()).Groups[1].Value;
+
+        using var again = app.NewClient();
+        Assert.Contains("error=1", (await TestApp.LoginAsync(again, "carol", "Carol-Password-1234")).Headers.Location!.OriginalString, StringComparison.Ordinal);
+        Assert.Equal("/password", (await TestApp.LoginAsync(again, "carol", temp)).Headers.Location?.OriginalString);
+    }
+
+    [Fact]
     public async Task Restart_does_not_recreate_or_reset_admin()
     {
         using var env = new TestEnv();

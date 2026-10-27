@@ -17,10 +17,11 @@
             <button type="button" id="btn-close" title="Tanca la sessió tmux al servidor remot">Tanca la sessió</button>
             <button type="button" id="btn-copy" title="Copia la selecció al porta-retalls">Copia</button>
             <button type="button" id="btn-paste" title="Enganxa des del porta-retalls">Enganxa</button>
+            <button type="button" id="btn-tabfocus" aria-pressed="false" title="Quan està activat, Tab i Maj+Tab surten del terminal en lloc d'enviar-se a la shell (drecera: Ctrl+Maj+M)">Tab mou el focus</button>
             <span id="status" role="status" aria-live="polite" class="terminal-status">Sense connexió</span>
             <code id="session-id" class="terminal-session-id" title="Identificador de la sessió"></code>
         </div>
-        <div id="terminal" role="application" aria-label="Terminal SSH. Prem Tab per sortir amb el teclat només si el terminal no té el focus."></div>
+        <div id="terminal" role="application" aria-label="Terminal SSH. Tab s'envia a la shell; activa «Tab mou el focus» (Ctrl+Maj+M) per sortir amb el teclat."></div>
         <div id="terminal-error" role="alert" class="form-error" hidden></div>
     </section>
 

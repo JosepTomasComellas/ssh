@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using WebSshTerminal.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +18,7 @@ public static class AuthSetup
     public const string AdminPolicy = "AdminOnly";
     public const string LoginLimiter = "login";
 
-    public static IServiceCollection AddWebSshAuth(this IServiceCollection services, WebSshOptions options, bool isDevelopment)
+    public static IServiceCollection AddWebSshAuth(this IServiceCollection services, WebSshOptions options, AppSecrets secrets, bool isDevelopment)
     {
         Directory.CreateDirectory(options.DataDirectory);
         Directory.CreateDirectory(Path.Combine(options.DataDirectory, "keys"));
@@ -25,6 +27,7 @@ public static class AuthSetup
         services.AddDataProtection()
             .SetApplicationName("web-ssh-terminal")
             .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(options.DataDirectory, "keys")));
+        services.Configure<KeyManagementOptions>(o => o.XmlEncryptor = new AppKeyXmlEncryptor(secrets));
 
         services.AddIdentityCore<AppUser>(o =>
             {
@@ -42,6 +45,7 @@ public static class AuthSetup
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddSignInManager()
+            .AddDefaultTokenProviders() // necessari per al reinici de contrasenya d'admin
             .AddClaimsPrincipalFactory<ClaimsFactory>();
 
         services.AddAuthentication(IdentityConstants.ApplicationScheme)
@@ -74,7 +78,7 @@ public static class AuthSetup
             r.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             r.AddPolicy(LoginLimiter, ctx => RateLimitPartition.GetFixedWindowLimiter(
                 ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = options.LoginRateLimitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
         });
 
         services.AddHostedService<BootstrapService>();

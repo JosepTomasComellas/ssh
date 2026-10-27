@@ -11,7 +11,11 @@ internal static class HealthProbe
         try
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-            using var res = await http.GetAsync(new Uri(new Uri(baseUrl), "/health/ready"));
+            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(new Uri(baseUrl), "/health/ready"));
+            // El filtre d'hosts només accepta l'host públic configurat: la sonda local l'ha d'usar també.
+            if (Uri.TryCreate(Environment.GetEnvironmentVariable("WebSsh__PublicUrl"), UriKind.Absolute, out var pub))
+                request.Headers.Host = pub.Host;
+            using var res = await http.SendAsync(request);
             if (!res.IsSuccessStatusCode) return 1;
             using var doc = await JsonDocument.ParseAsync(await res.Content.ReadAsStreamAsync());
             return doc.RootElement.TryGetProperty("status", out var s) && s.GetString() == "ok" ? 0 : 1;

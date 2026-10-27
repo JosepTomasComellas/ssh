@@ -118,6 +118,24 @@
     }
   }
 
+  // Evita la trampa de teclat (WCAG 2.1.2): xterm consumeix Tab per enviar-lo a la shell.
+  let tabMovesFocus = false;
+  const tabBtn = $('btn-tabfocus');
+  const setTabMode = (on) => {
+    tabMovesFocus = on;
+    tabBtn.setAttribute('aria-pressed', String(on));
+    setStatus(on ? 'Tab mou el focus fora del terminal' : 'Tab s\'envia a la shell');
+  };
+  tabBtn.addEventListener('click', () => setTabMode(!tabMovesFocus));
+  term.attachCustomKeyEventHandler((ev) => {
+    if (ev.type === 'keydown' && ev.ctrlKey && ev.shiftKey && ev.key.toLowerCase() === 'm') {
+      setTabMode(!tabMovesFocus);
+      return false;
+    }
+    if (tabMovesFocus && ev.key === 'Tab') return false; // el navegador mou el focus
+    return true;
+  });
+
   term.onData((data) => {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(enc.encode(data));
   });
@@ -162,10 +180,10 @@
 
   const join = (dir, name) => (dir ? dir.replace(/\/+$/, '') + '/' : '') + name;
 
-  async function listFiles() {
-    filesStatus.textContent = '';
+  async function listFiles(keepStatus) {
+    if (keepStatus !== true) filesStatus.textContent = '';
     const res = await api('GET', '/api/files/list?path=' + encodeURIComponent(pathInput.value));
-    if (res.status === 400) { filesStatus.textContent = 'Ruta no permitida.'; return; }
+    if (res.status === 400) { filesStatus.textContent = 'Ruta no permesa.'; return; }
     if (!res.ok) { filesStatus.textContent = 'No s\'ha pogut llistar la carpeta.'; return; }
     const items = await res.json();
     listEl.replaceChildren(...items.map((e) => {
@@ -202,11 +220,11 @@
     if (res.status === 413) { filesStatus.textContent = 'El fitxer supera la mida màxima permesa.'; return; }
     if (res.status === 400) { filesStatus.textContent = 'Nom o ruta no permesos.'; return; }
     if (!res.ok) { filesStatus.textContent = 'No s\'ha pogut pujar el fitxer.'; return; }
+    await listFiles(true);
     filesStatus.textContent = 'Fitxer pujat.';
-    listFiles();
   }
 
-  $('btn-files-list').addEventListener('click', listFiles);
+  $('btn-files-list').addEventListener('click', () => listFiles());
   $('upload-file').addEventListener('change', (ev) => {
     const f = ev.target.files[0];
     if (f) upload(f, false);

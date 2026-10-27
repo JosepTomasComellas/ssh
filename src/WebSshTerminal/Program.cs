@@ -52,7 +52,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(f =>
     foreach (IPAddress ip in WebSshOptionsValidator.ParseProxies(options.TrustedProxies)) f.KnownProxies.Add(ip);
 });
 
-builder.Services.AddWebSshAuth(options, builder.Environment.IsDevelopment());
+builder.Services.AddWebSshAuth(options, secrets, builder.Environment.IsDevelopment());
 if (!builder.Environment.IsDevelopment())
 {
     var publicHost = new Uri(options.PublicUrl).Host;
