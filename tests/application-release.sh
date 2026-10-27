@@ -6,8 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== Format i build (Release, avisos com a errors)"
+dotnet build -c Release --nologo -v q   # també fa el restore
 dotnet format --verify-no-changes --no-restore
-dotnet build -c Release --nologo -v q
 
 echo "== Dependències vulnerables"
 out="$(dotnet list src/WebSshTerminal package --vulnerable --include-transitive 2>&1)"
