@@ -1,16 +1,48 @@
-﻿@page "/"
+@page "/"
 @inject WebSshOptions Options
+@inject WebSshTerminal.Configuration.BrandingService Brand
 
-<PageTitle>@Options.Branding.Name</PageTitle>
+<PageTitle>@Brand.AppName</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
-    <MudText Typo="Typo.h4" GutterBottom="true">@Options.Branding.Name</MudText>
-    <MudText>
-        Terminal SSH al navegador cap a un únic servidor configurat per l'administrador.
-        L'accés requereix un compte local; aquesta versió encara no inclou inici de sessió.
-    </MudText>
-    <MudAlert Severity="Severity.Info" Class="mt-4">
-        El servei és actiu. La connexió SSH no està disponible fins que s'implementin
-        comptes, validació de clau de host i terminal.
-    </MudAlert>
-</MudContainer>
+<section class="hero">
+    <img src="@Brand.SymbolUrl" alt="" />
+    <div>
+        <h1>Hola, @context_name</h1>
+        <p>Terminal SSH al servidor de @Brand.OrgName · @Brand.OrgDept, des del navegador i amb sessions que es conserven.</p>
+    </div>
+</section>
+
+<div class="tiles">
+    <a class="tile" href="/terminal">
+        <MudIcon Icon="@Icons.Material.Filled.Terminal" />
+        <strong>Terminal</strong>
+        <span class="muted">Obre o reprèn una sessió, i puja o baixa fitxers.</span>
+    </a>
+    <a class="tile" href="/account/mfa">
+        <MudIcon Icon="@Icons.Material.Filled.Security" />
+        <strong>Verificació en dos passos</strong>
+        <span class="muted">Protegeix el teu compte amb un codi QR i una aplicació d'autenticació.</span>
+    </a>
+    <AuthorizeView Policy="@WebSshTerminal.Auth.AuthSetup.AdminPolicy">
+        <a class="tile" href="/admin/users">
+            <MudIcon Icon="@Icons.Material.Filled.People" />
+            <strong>Usuaris</strong>
+            <span class="muted">Crea comptes, reinicia contrasenyes i assigna identitats SSH.</span>
+        </a>
+        <a class="tile" href="/admin/identities">
+            <MudIcon Icon="@Icons.Material.Filled.VpnKey" />
+            <strong>Identitats SSH</strong>
+            <span class="muted">Comptes Linux del servidor i les seves claus, xifrades en repòs.</span>
+        </a>
+    </AuthorizeView>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+    private string context_name = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null) context_name = (await AuthState).User.Identity?.Name ?? "";
+    }
+}

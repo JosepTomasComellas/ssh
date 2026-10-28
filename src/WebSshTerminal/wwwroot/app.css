@@ -1,79 +1,169 @@
-html, body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }
+/* Terminal SSH · sistema de disseny (llenguatge visual d'AutoCo / Assistència Plus).
+   Les variables --brand, --brand-dark, --nav i --bg-image les genera BrandingService a App.razor. */
 
-.instance-logo { height: 32px; }
-
-.main-with-credit { padding-bottom: 88px; }
-
-.source-footer {
-    position: fixed; left: 0; bottom: 0; padding: 6px 16px; font-size: .8rem;
-    background: rgba(255, 255, 255, .85); color: #333; border-top-right-radius: 6px;
+:root {
+    --bg: #F4F6FA; --surface: #FFFFFF; --surface-2: #F8FAFC; --text: #1A2744; --muted: #4A5568;
+    --border: #E2E8F0; --input-border: #A0AEC0; --radius: 8px;
+    --ok: #2E7D32; --ok-bg: #E8F5E9; --warn: #8A5A00; --warn-bg: #FFF4DB; --err: #B71C1C; --err-bg: #FDECEA;
+    --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 6px 16px rgba(15, 23, 42, .06);
+    --focus: #1E6FD9;
+    font-family: Roboto, "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
 }
-.source-footer a { color: inherit; }
-
-/* Crèdit fix: no depèn del tema ni de la configuració de la instància. */
-.tuteapps-credit {
-    position: fixed; right: 16px; bottom: 16px; z-index: 2000;
-    display: block; line-height: 0; border-radius: 6px;
+@media (prefers-color-scheme: dark) {
+    :root:not(.theme-light) { --bg: #0F172A; --surface: #1E293B; --surface-2: #162033; --text: #E2E8F0; --muted: #A9B8CC;
+        --border: #334155; --input-border: #64748B; --ok-bg: #12301A; --warn: #F5C451; --warn-bg: #3A2D0B; --err: #FF8A80; --err-bg: #3B1717;
+        --focus: #7FB4FF; color-scheme: dark; }
 }
-.tuteapps-credit img { height: 40px; width: auto; display: block; }
-.tuteapps-credit:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+:root.theme-dark { --bg: #0F172A; --surface: #1E293B; --surface-2: #162033; --text: #E2E8F0; --muted: #A9B8CC;
+    --border: #334155; --input-border: #64748B; --ok-bg: #12301A; --warn: #F5C451; --warn-bg: #3A2D0B; --err: #FF8A80; --err-bg: #3B1717;
+    --focus: #7FB4FF; color-scheme: dark; }
 
-.plain-form { display: grid; gap: .5rem; margin-top: 1rem; }
-.plain-form.inline, form.inline { display: inline-flex; gap: .5rem; align-items: center; margin: 0 .25rem 0 0; }
-.plain-form input, .plain-form select { padding: .5rem; font-size: 1rem; }
-.plain-form button, .user-table button { padding: .5rem 1rem; font-size: 1rem; cursor: pointer; }
-.form-error { background: #fdecea; color: #611a15; padding: .75rem; border-radius: 4px; margin-top: 1rem; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); -webkit-text-size-adjust: 100%; }
+body { line-height: 1.55; font-size: 1rem; }
+h1, h2, h3 { line-height: 1.25; margin: 0 0 .5rem; font-weight: 700; }
+h1 { font-size: 1.6rem; } h2 { font-size: 1.2rem; }
+a { color: var(--brand); }
+code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: .05rem .35rem; font-size: .9em; }
+.muted, .hint { color: var(--muted); } .hint { font-size: .85rem; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.terminal-page { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1rem; padding: 1rem 1rem 0 1rem; }
-.terminal-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .5rem; }
-.terminal-toolbar button, .terminal-toolbar select, .terminal-files button, .terminal-files input { padding: .4rem .7rem; font-size: .95rem; }
-.terminal-status { margin-left: .5rem; font-size: .9rem; }
+/* Focus visible a tot arreu (WCAG 2.4.7) */
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+/* ── Barra superior ──────────────────────────────────────────────────────── */
+.appbar { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 1rem; min-height: 64px; padding: .25rem 1.25rem;
+    background: var(--nav); color: #fff; border-bottom: 3px solid var(--brand); box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+.brand { display: flex; align-items: center; gap: .75rem; color: #fff; text-decoration: none; flex-shrink: 0; }
+.brand-logo { height: 40px; width: auto; display: block; }
+.brand-name { font-weight: 600; font-size: 1.05rem; padding-left: .75rem; border-left: 1px solid rgba(255, 255, 255, .35); white-space: nowrap; }
+.appnav { display: flex; gap: .25rem; align-items: center; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.appnav::-webkit-scrollbar { display: none; }
+.nav-link { display: inline-flex; align-items: center; gap: .4rem; color: rgba(255, 255, 255, .92); text-decoration: none; font-weight: 500; font-size: .95rem;
+    padding: .5rem .75rem; border-radius: var(--radius); white-space: nowrap; }
+.nav-link:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.nav-link .mud-icon-root { width: 1.15rem; height: 1.15rem; }
+.appuser { display: flex; align-items: center; gap: .6rem; margin-left: auto; flex-shrink: 0; }
+.appuser form, form.inline { display: inline-flex; margin: 0; }
+.chip { display: inline-flex; align-items: center; font-size: .75rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+    padding: .15rem .55rem; border-radius: 999px; background: rgba(255, 255, 255, .16); color: #fff; }
+.who { font-size: .9rem; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.appbar .btn, .appbar button { color: #fff; border-color: rgba(255, 255, 255, .5); background: transparent; }
+.appbar .btn:hover, .appbar button:hover { background: rgba(255, 255, 255, .14); border-color: #fff; }
+.appbar :focus-visible { outline-color: #fff; }
+
+/* ── Pàgines i targetes ──────────────────────────────────────────────────── */
+.page { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem 7rem; }
+.page--wide { max-width: none; padding-top: 1rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); box-shadow: var(--shadow); padding: 1.5rem; }
+.card + .card { margin-top: 1rem; }
+.page-title { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.page-title h1 { margin: 0; }
+.page-title .mud-icon-root { color: var(--brand); }
+.form-error, .form-ok { padding: .75rem 1rem; border-radius: var(--radius); margin: 1rem 0; border: 1px solid transparent; }
+.form-error { background: var(--err-bg); color: var(--err); border-color: color-mix(in srgb, var(--err) 35%, transparent); }
+.form-ok { background: var(--ok-bg); color: var(--ok); border-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+
+/* Tessel·les de la portada */
+.hero { background: linear-gradient(135deg, var(--nav), color-mix(in srgb, var(--nav) 70%, var(--brand))); color: #fff; border-radius: calc(var(--radius) + 6px);
+    padding: 2rem; display: flex; gap: 1.5rem; align-items: center; box-shadow: var(--shadow); border-bottom: 4px solid var(--brand); }
+.hero img { height: 84px; width: 84px; background: #fff; border-radius: 16px; padding: 8px; flex-shrink: 0; }
+.hero h1 { margin-bottom: .25rem; } .hero p { margin: 0; opacity: .92; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+.tile { display: flex; flex-direction: column; gap: .35rem; text-decoration: none; color: var(--text); background: var(--surface); border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 4px); padding: 1.25rem; box-shadow: var(--shadow); transition: transform .12s, border-color .12s; }
+.tile:hover { transform: translateY(-2px); border-color: var(--brand); }
+.tile .mud-icon-root { color: var(--brand); width: 2rem; height: 2rem; }
+.tile strong { font-size: 1.05rem; } .tile span.muted { font-size: .9rem; }
+
+/* ── Botons i formularis ─────────────────────────────────────────────────── */
+button, .btn { font: inherit; font-weight: 600; font-size: .92rem; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; cursor: pointer;
+    padding: .5rem .95rem; border-radius: var(--radius); border: 1px solid var(--input-border); background: var(--surface); color: var(--text); text-decoration: none; }
+button:hover, .btn:hover { background: var(--surface-2); border-color: var(--text); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+button[aria-pressed="true"] { background: var(--nav); color: #fff; border-color: var(--nav); }
+.btn-block { width: 100%; }
+
+.plain-form, .stack { display: grid; gap: .6rem; margin-top: 1rem; }
+.plain-form.inline, form.inline { display: inline-flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 0 .25rem .25rem 0; }
+label { font-size: .88rem; font-weight: 600; color: var(--muted); }
+input, select, textarea { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--input-border); border-radius: var(--radius); padding: .6rem .75rem; min-width: 0; }
+input:focus, select:focus, textarea:focus { border-color: var(--brand); }
+textarea { font-family: ui-monospace, Consolas, monospace; font-size: .88rem; }
+
+.user-table { width: 100%; border-collapse: collapse; margin-top: 1.25rem; background: var(--surface); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+.user-table th { text-align: left; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); }
+.user-table th, .user-table td { padding: .65rem .8rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.user-table tr:last-child td { border-bottom: 0; }
+.user-table button { padding: .3rem .6rem; font-size: .82rem; }
+.table-wrap { overflow-x: auto; }
+
+/* ── Pantalla d'accés (fons de marca) ────────────────────────────────────── */
+.auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem 1rem 6rem;
+    background: linear-gradient(rgba(244, 246, 250, .74), rgba(244, 246, 250, .74)), var(--bg-image) center / cover no-repeat fixed; }
+:root.theme-dark .auth-wrap { background: linear-gradient(rgba(15, 23, 42, .82), rgba(15, 23, 42, .82)), var(--bg-image) center / cover no-repeat fixed; }
+@media (prefers-color-scheme: dark) { :root:not(.theme-light) .auth-wrap { background: linear-gradient(rgba(15, 23, 42, .82), rgba(15, 23, 42, .82)), var(--bg-image) center / cover no-repeat fixed; } }
+.auth-card { width: min(420px, 100%); text-align: center; border-top: 4px solid var(--brand); }
+.auth-card .plain-form { text-align: left; }
+.auth-symbol { height: 72px; width: 72px; margin: 0 auto .5rem; display: block; }
+.auth-card h1 { font-size: 1.4rem; margin-bottom: .15rem; }
+
+/* ── Terminal ────────────────────────────────────────────────────────────── */
+.terminal-page { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1rem; }
+.terminal-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .6rem; }
+.terminal-toolbar button, .terminal-toolbar select { padding: .4rem .7rem; font-size: .9rem; }
+.terminal-status { margin-left: .5rem; font-size: .9rem; font-weight: 600; padding: .15rem .6rem; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
 .terminal-session-id { font-size: .8rem; opacity: .7; }
-#terminal { height: calc(100vh - 11rem); min-height: 18rem; background: #000; padding: .25rem; border-radius: 4px; }
-#terminal:focus-within { outline: 3px solid #ffbf47; }
-.terminal-files { min-width: 0; padding-bottom: 6rem; }
-.terminal-files label { display: block; margin-top: .75rem; font-size: .9rem; }
+#terminal { height: calc(100vh - 12rem); min-height: 18rem; background: #000; padding: .4rem; border-radius: var(--radius); box-shadow: var(--shadow); }
+#terminal:focus-within { outline: 3px solid var(--focus); }
+.terminal-files { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); padding: 1rem; box-shadow: var(--shadow); align-self: start; }
+.terminal-files label { display: block; margin-top: .75rem; }
 .files-path-row { display: flex; gap: .5rem; }
 .files-path-row input { flex: 1; min-width: 0; }
 .files-list { list-style: none; padding: 0; margin: .5rem 0; max-height: 14rem; overflow: auto; font-size: .9rem; }
-.files-list button { background: none; border: 0; padding: .1rem 0; cursor: pointer; text-decoration: underline; }
-.hint { font-size: .85rem; opacity: .75; }
-@media (max-width: 800px) {
+.files-list button { background: none; border: 0; padding: .1rem 0; text-decoration: underline; color: var(--brand); font-weight: 500; }
+@media (max-width: 860px) {
     .terminal-page { grid-template-columns: minmax(0, 1fr); }
     #terminal { height: 60vh; }
-    .terminal-files { padding-bottom: 6rem; }
+    .brand-name { display: none; }
+    .who { display: none; }
+    .hero { flex-direction: column; text-align: center; }
 }
 
-.form-ok { background: #e8f5e9; color: #1b5e20; padding: .75rem; border-radius: 4px; margin-top: 1rem; }
-.plain-form textarea { padding: .5rem; font-family: monospace; font-size: .9rem; }
-.user-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
-.user-table th, .user-table td { text-align: left; padding: .5rem; border-bottom: 1px solid #ddd; }
-.appbar-link { color: inherit; background: none; border: 0; font: inherit; margin-left: 1rem; cursor: pointer; text-decoration: underline; }
+/* ── MFA ─────────────────────────────────────────────────────────────────── */
+.mfa-qr { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); display: block; }
 
-#blazor-error-ui {
-    color-scheme: light only; background: lightyellow; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, .2);
-    box-sizing: border-box; display: none; left: 0; padding: .6rem 1.25rem .7rem 1.25rem; position: fixed;
-    width: 100%; z-index: 1000;
-}
+/* ── Peu i crèdit fix de TuteApps ────────────────────────────────────────── */
+.source-footer { position: fixed; left: 0; bottom: 0; padding: 6px 14px; font-size: .78rem; background: color-mix(in srgb, var(--surface) 92%, transparent);
+    color: var(--muted); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-top-right-radius: var(--radius); z-index: 50; }
+.source-footer a { color: inherit; }
+.tuteapps-credit { position: fixed; right: 16px; bottom: 16px; z-index: 2000; display: block; line-height: 0; border-radius: 6px; }
+.tuteapps-credit img { height: 40px; width: auto; display: block; }
+.tuteapps-credit::after { content: attr(data-tooltip); position: absolute; right: 0; bottom: calc(100% + 6px); white-space: nowrap; background: #212121; color: #fff;
+    padding: 4px 8px; border-radius: 4px; font-size: .8rem; line-height: 1.3; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.tuteapps-credit:hover::after, .tuteapps-credit:focus-visible::after { opacity: 1; }
+.tuteapps-credit:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+
+#blazor-error-ui { color-scheme: light only; background: lightyellow; color: #333; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, .2); box-sizing: border-box; display: none;
+    left: 0; padding: .6rem 1.25rem .7rem 1.25rem; position: fixed; width: 100%; z-index: 3000; }
 #blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: .75rem; top: .5rem; }
 
-/* Tooltip del crèdit: visible amb ratolí i amb focus de teclat, a més del title natiu. */
-.tuteapps-credit::after {
-    content: attr(data-tooltip); position: absolute; right: 0; bottom: calc(100% + 6px); white-space: nowrap;
-    background: #212121; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: .8rem; line-height: 1.3;
-    opacity: 0; pointer-events: none; transition: opacity .15s;
-}
-.tuteapps-credit:hover::after, .tuteapps-credit:focus-visible::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
-/* Botons de formularis simples (MudBlazor els deixa sense estil). */
-.terminal-toolbar button, .terminal-files button, .plain-form button, .user-table button, .appbar-link-btn {
-    border: 1px solid #757575; border-radius: 4px; background: #f5f5f5; color: #212121; cursor: pointer;
-}
-.terminal-toolbar button:hover, .terminal-files button:hover, .plain-form button:hover, .user-table button:hover { background: #e0e0e0; }
-.terminal-toolbar button:disabled, .user-table button:disabled { opacity: .5; cursor: not-allowed; }
-.terminal-toolbar button[aria-pressed="true"] { background: #1565c0; color: #fff; border-color: #0d47a1; }
-.terminal-files button[type="button"].files-dir, .files-list button { border: 0; background: none; }
-button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+/* Blazor enfoca el h1 en navegar (FocusOnNavigate): no ha de mostrar anell de focus. */
+h1:focus, h1:focus-visible { outline: none; }
 
-.mfa-qr { background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+/* ── Mòbil: barra en dues files, peu dins el flux (no tapa contingut) ───── */
+@media (max-width: 860px) {
+    .appbar { flex-wrap: wrap; gap: .15rem .75rem; padding: .4rem .75rem; }
+    .brand-logo { height: 34px; }
+    .appnav { order: 3; flex: 1 1 100%; padding-bottom: .15rem; }
+    .appuser { gap: .4rem; }
+    .chip { display: none; }
+    .page { padding: 1rem .75rem 6rem; }
+    .source-footer { position: static; margin: 1rem .75rem 5rem; border: 0; background: none; padding: 0; text-align: center; }
+    .card { padding: 1rem; }
+}

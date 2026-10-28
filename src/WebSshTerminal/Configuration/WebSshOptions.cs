@@ -36,11 +36,18 @@ public sealed class WebSshOptions
     public BrandingOptions Branding { get; set; } = new();
 }
 
-/// <summary>Personalització de la instància. El crèdit TuteApps no és configurable.</summary>
+/// <summary>
+/// Personalització de la instància (noms, colors, tema, logos). Per defecte, el branding de Salesians de Sarrià
+/// (el mateix d'AutoCo). El crèdit TuteApps NO és configurable.
+/// </summary>
 public sealed class BrandingOptions
 {
-    public string Name { get; set; } = "Web SSH Terminal";
-    public string PrimaryColor { get; set; } = "#1565c0";
+    public string Name { get; set; } = "Terminal SSH";
+    public string OrgName { get; set; } = "Salesians de Sarrià";
+    public string OrgDept { get; set; } = "Dept. d'Informàtica";
+    public string PrimaryColor { get; set; } = "#CC0000";
+    public string NavColor { get; set; } = "#1e293b";
     public string Theme { get; set; } = "auto"; // auto | light | dark
+    /// <summary>Opcional: ruta local (comença per «/») d'un logotip alternatiu per a la barra superior.</summary>
     public string LogoUrl { get; set; } = "";
 }

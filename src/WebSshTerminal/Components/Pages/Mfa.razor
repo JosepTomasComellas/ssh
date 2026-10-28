@@ -7,8 +7,8 @@
 
 <PageTitle>MFA</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
-    <h1 class="mud-typography mud-typography-h5">Verificació en dos passos (TOTP)</h1>
+<div class="card" style="max-width:640px;margin:0 auto">
+    <div class="page-title"><MudIcon Icon="@Icons.Material.Filled.Security" /><h1>Verificació en dos passos (TOTP)</h1></div>
     @if (Error is not null)
     {
         <div role="alert" class="form-error">@(Error switch { "code" => "El codi no és correcte.", "password" => "La contrasenya no és correcta.", "required" => "L'administrador exigeix MFA: no es pot desactivar.", _ => "No s'ha pogut completar l'acció." })</div>
@@ -20,13 +20,13 @@
             <AntiforgeryToken />
             <label for="password">Contrasenya (per desactivar-lo)</label>
             <input id="password" name="password" type="password" autocomplete="current-password" required />
-            <button type="submit">Desactiva el MFA</button>
+            <button type="submit" class="btn">Desactiva el MFA</button>
         </form>
     }
     else if (_key is null)
     {
         <p>Protegeix el compte amb un segon factor: un codi de 6 dígits d'una aplicació d'autenticació (Aegis, 2FAS, Google Authenticator…).</p>
-        <form method="post" action="/account/mfa/start" class="plain-form"><AntiforgeryToken /><button type="submit">Activa el MFA</button></form>
+        <form method="post" action="/account/mfa/start" class="plain-form"><AntiforgeryToken /><button type="submit" class="btn btn-primary">Activa el MFA</button></form>
     }
     else
     {
@@ -42,10 +42,10 @@
             <AntiforgeryToken />
             <label for="code">Codi (6 dígits)</label>
             <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" required />
-            <button type="submit">Confirma i activa</button>
+            <button type="submit" class="btn btn-primary">Confirma i activa</button>
         </form>
     }
-</MudContainer>
+</div>
 
 @code {
     [SupplyParameterFromQuery] public string? Error { get; set; }

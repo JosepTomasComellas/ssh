@@ -19,6 +19,8 @@
   <ItemGroup>
     <!-- Logo original de TuteApps: una sola còpia, a assets/branding. -->
     <Content Include="..\..\assets\branding\TuteApps_Logo.png" Link="wwwroot\branding\TuteApps_Logo.png" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Branding per defecte de la instància (substituïble sense recompilar: <dades>/branding/). -->
+    <Content Include="..\..\assets\branding\salesians-*" Link="wwwroot\branding\%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

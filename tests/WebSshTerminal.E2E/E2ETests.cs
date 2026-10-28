@@ -238,4 +238,47 @@ public sealed class E2ETests(Fixture fx)
         await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, $"terminal-{label}.png"), FullPage = true });
         await ctx.CloseAsync();
     }
+
+    [Fact]
+    public async Task Branding_is_applied_and_key_pages_render()
+    {
+        var ctx = await fx.NewContextAsync(1280, 800);
+        var page = await ctx.NewPageAsync();
+
+        // Pantalla d'accés: fons, símbol, color de marca i logotip carregats.
+        await page.GotoAsync("/login");
+        await Assertions.Expect(page.Locator("img.auth-symbol")).ToBeVisibleAsync();
+        Assert.True(await page.Locator("img.auth-symbol").EvaluateAsync<bool>("i => i.complete && i.naturalWidth > 0"), "El símbol no ha carregat");
+        Assert.Equal("#CC0000", (await page.EvaluateAsync<string>("() => getComputedStyle(document.documentElement).getPropertyValue('--brand')")).Trim());
+        await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, "ui-login.png") });
+
+        await fx.LoginAsync(page, "admin", fx.AdminPassword);
+        await page.GotoAsync("/");
+        Assert.True(await page.Locator("img.brand-logo").EvaluateAsync<bool>("i => i.complete && i.naturalWidth > 0"), "El logotip de la barra no ha carregat");
+        await Assertions.Expect(page.Locator("section.hero h1")).ToContainTextAsync("Hola, admin");
+        await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, "ui-home.png") });
+
+        foreach (var (path, name) in new[] { ("/admin/users", "ui-users"), ("/admin/identities", "ui-identities"), ("/account/mfa", "ui-mfa") })
+        {
+            await page.GotoAsync(path);
+            await Assertions.Expect(page.Locator("main .card h1")).ToBeVisibleAsync();
+            await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, name + ".png") });
+        }
+
+        // MFA: en iniciar l'activació es mostra el QR (SVG en línia) i la clau manual com a alternativa.
+        await page.GotoAsync("/account/mfa");
+        var start = page.Locator("button:text('Activa el MFA')");
+        if (await start.CountAsync() > 0) await start.ClickAsync();
+        await Assertions.Expect(page.Locator("img#mfa-qr")).ToBeVisibleAsync();
+        Assert.True(await page.Locator("img#mfa-qr").EvaluateAsync<bool>("i => i.complete && i.naturalWidth > 100"), "El QR no s'ha carregat");
+        await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, "ui-mfa-qr.png") });
+
+        // Mòbil.
+        await page.SetViewportSizeAsync(390, 844);
+        await page.GotoAsync("/");
+        await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, "ui-home-mobile.png") });
+        var overflow = await page.EvaluateAsync<bool>("() => document.documentElement.scrollWidth > window.innerWidth + 1");
+        Assert.False(overflow, "Hi ha desbordament horitzontal en mòbil");
+        await ctx.CloseAsync();
+    }
 }

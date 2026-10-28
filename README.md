@@ -40,7 +40,7 @@ Navegador ──HTTPS/WSS──▶ Nginx o Traefik ──▶ App (ASP.NET Core 1
 | Porta-retalls (només amb acció explícita de l'usuari) | Fet |
 | Auditoria de metadades (actor, hora, sessió, operació, resultat, bytes) | Fet |
 | Mètriques Prometheus agregades + dashboard Grafana | Fet (dashboard sense validar amb dades reals) |
-| Marca: crèdit fix **TuteApps**, nom/colors/tema configurables | Fet |
+| Interfície amb el branding de Salesians de Sarrià (el d'AutoCo): barra slate, targetes, pantalla d'accés amb fons, tema clar/fosc, responsiu; configurable (`WebSsh__Branding__*` i fitxers a `<dades>/branding/`). Crèdit fix **TuteApps** | Fet |
 | Interfície en castellà | Pendent |
 | MFA (TOTP) amb codis de recuperació; obligatori amb `require_mfa` | Fet |
 | Desplegament a Linux provat en un servidor real | Pendent (cal servidor, DNS i certificat) |
@@ -97,7 +97,7 @@ contrasenya robada.**
 
 ## Estat i limitacions
 
-Provat en local: 65 proves .NET (inclou OpenSSH i tmux reals en Docker), 7 proves e2e de navegador amb Nginx i amb
+Provat en local: 71 proves .NET (inclou OpenSSH i tmux reals en Docker), 8 proves e2e de navegador amb Nginx i amb
 Traefik, 4 proves d'operació, `dotnet format` i escaneig de dependències (NuGet i npm) sense troballes.
 **No provat:** servidor Linux real, DNS/ACME, Traefik amb *certresolver* real, càrrega, alta disponibilitat (una sola
 rèplica). El pipeline de release (`deploy/application.json`) continua bloquejat en `scaffold`; vegeu
