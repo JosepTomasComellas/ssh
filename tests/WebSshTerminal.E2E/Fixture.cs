@@ -5,6 +5,21 @@ using Microsoft.Playwright;
 
 namespace WebSshTerminal.E2E;
 
+/// <summary>Espera per sondeig de l'URL: no depèn de l'estat de càrrega del document (que en arrencades fredes pot trigar).</summary>
+public static class Waits
+{
+    public static async Task UrlAsync(IPage page, Func<string, bool> predicate, int timeoutMs = 60000)
+    {
+        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (predicate(page.Url)) return;
+            await Task.Delay(100);
+        }
+        throw new TimeoutException($"URL esperada no assolida; URL actual: {page.Url}");
+    }
+}
+
 /// <summary>Prepara (de manera idempotent) l'admin, les identitats SSH del fixture i dos usuaris web.</summary>
 public sealed class Fixture : IAsyncLifetime
 {
@@ -90,7 +105,7 @@ public sealed class Fixture : IAsyncLifetime
         await page.FillAsync("#password", password);
         // Èxit → fora de /login; error → /login?error=1. Espera sempre una navegació nova.
         await page.ClickAsync("form[action='/account/login'] button[type=submit]");
-        await page.WaitForURLAsync(u => u != BaseUrl + "/login", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        await Waits.UrlAsync(page, u => u != BaseUrl + "/login");
     }
 
     private async Task LoginAdminAsync(IPage page)
@@ -112,12 +127,12 @@ public sealed class Fixture : IAsyncLifetime
 
     public static async Task ChangePasswordAsync(IPage page, string current, string next)
     {
-        await page.WaitForURLAsync("**/password");
+        await Waits.UrlAsync(page, u => u.EndsWith("/password", StringComparison.Ordinal));
         await page.FillAsync("#current", current);
         await page.FillAsync("#next", next);
         await page.FillAsync("#confirm", next);
         await page.ClickAsync("form[action='/account/password'] button[type=submit]");
-        await page.WaitForURLAsync(u => !u.Contains("/password", StringComparison.Ordinal));
+        await Waits.UrlAsync(page, u => !u.Contains("/password", StringComparison.Ordinal));
     }
 
     private static async Task EnsureIdentityAsync(IPage page, string name, string linuxUser)
