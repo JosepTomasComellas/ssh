@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import ipaddress
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -39,21 +40,32 @@ def parse_env(text: str) -> dict[str, str]:
             continue
         key, _, value = line.partition("=")
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
-            value = value[1:-1]
+        if value[:1] in ("'", "\""):
+            end = value.find(value[0], 1)
+            value = value[1:end] if end > 0 else value[1:]
+        else:
+            value = re.split(r"\s+#", value, maxsplit=1)[0].strip()  # comentari en línia
         env[key.strip()] = value
     return env
 
 
-def pick_subnet(used: list[str], first: int = 50, last: int = 250) -> str:
-    """Primera 172.30.X.0/24 que no se superposi amb cap subxarxa existent."""
-    taken = [ipaddress.ip_network(u, strict=False) for u in used if u]
-    for third in range(first, last + 1):
-        candidate = ipaddress.ip_network(f"172.30.{third}.0/24")
-        if not any(candidate.overlaps(t) for t in taken if t.version == 4):
-            return str(candidate)
-    raise ConfigError("No hi ha cap subxarxa 172.30.X.0/24 lliure; defineix BACKEND_SUBNET al .env")
+def _candidates():
+    """172.30.X.0/24 primer (convenció del projecte), després la resta de 172.16/12 i, per últim, 10.250.X.0/24."""
+    for second in (30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16):
+        for third in range(50, 251):
+            yield ipaddress.ip_network(f"172.{second}.{third}.0/24")
+    for third in range(0, 256):
+        yield ipaddress.ip_network(f"10.250.{third}.0/24")
 
+
+def pick_subnet(used: list[str]) -> str:
+    """Primera subxarxa /24 candidata que no se superposi amb cap xarxa Docker ni ruta del servidor."""
+    taken = [ipaddress.ip_network(u, strict=False) for u in used if u]
+    taken = [t for t in taken if t.version == 4]
+    for candidate in _candidates():
+        if not any(candidate.overlaps(t) for t in taken):
+            return str(candidate)
+    raise ConfigError("No hi ha cap subxarxa lliure; defineix BACKEND_SUBNET al .env")
 
 def gateway(subnet: str) -> str:
     return str(next(ipaddress.ip_network(subnet).hosts()))
@@ -106,6 +118,15 @@ def used_subnets() -> list[str]:
         for cfg in (net.get("IPAM") or {}).get("Config") or []:
             if cfg.get("Subnet"):
                 subnets.append(cfg["Subnet"])
+    # Rutes del propi servidor (VPN, xarxes de contenidors, etc.): millor esforç, si «ip» no hi és s'ignora.
+    try:
+        routes = subprocess.run(["ip", "-o", "-4", "route"], capture_output=True, text=True, check=False).stdout
+        for line in routes.splitlines():
+            token = line.split()[0] if line.split() else ""
+            if "/" in token:
+                subnets.append(token)
+    except OSError:
+        pass
     return subnets
 
 

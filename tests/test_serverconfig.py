@@ -22,12 +22,25 @@ class ServerConfigTests(unittest.TestCase):
     def test_parse_env_does_not_expand_or_execute(self):
         self.assertEqual(sc.parse_env("A=$(id)\nB=$HOME")["A"], "$(id)")
 
+    def test_parse_env_strips_inline_comments_but_keeps_quoted_hashes(self):
+        env = sc.parse_env("WEBSSH_ROOT=/docker/ssh        # on s'instal·la (dades)\nTZ='Europe/Madrid' # zona\nP=\"a # b\"\nURL=http://x/#frag")
+        self.assertEqual(env["WEBSSH_ROOT"], "/docker/ssh")
+        self.assertEqual(env["TZ"], "Europe/Madrid")
+        self.assertEqual(env["P"], "a # b")
+        self.assertEqual(env["URL"], "http://x/#frag")  # # sense espai previ no és comentari
+
+    def test_pick_subnet_falls_back_to_other_ranges_when_172_30_is_taken(self):
+        picked = sc.pick_subnet(["172.30.0.0/16", "172.17.0.0/16"])
+        self.assertEqual(picked, "172.29.50.0/24")
+        everything_172 = sc.pick_subnet(["172.16.0.0/12"])
+        self.assertTrue(everything_172.startswith("10.250."))
+
     def test_pick_subnet_skips_overlaps(self):
         self.assertEqual(sc.pick_subnet([]), "172.30.50.0/24")
         self.assertEqual(sc.pick_subnet(["172.30.50.0/24", "172.30.51.0/24"]), "172.30.52.0/24")
         self.assertEqual(sc.pick_subnet(["172.31.0.0/16"]), "172.30.50.0/24")
         with self.assertRaises(sc.ConfigError):
-            sc.pick_subnet(["172.30.0.0/16"])
+            sc.pick_subnet(["172.16.0.0/12", "10.0.0.0/8"])
 
     def test_gateway_is_first_host(self):
         self.assertEqual(sc.gateway("172.30.50.0/24"), "172.30.50.1")
