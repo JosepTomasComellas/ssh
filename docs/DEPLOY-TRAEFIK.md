@@ -5,6 +5,25 @@
 > d'un Traefik de proves (`python scripts/dev.py test --proxy traefik`). Fes un primer desplegament en un entorn
 > de prova abans d'exposar-lo.
 
+## Via ràpida (recomanada): un script i un `.env`
+
+Al servidor (Linux amb Docker, Git, Python 3 i `age`; Traefik ja en marxa i el DNS apuntant-hi):
+
+```bash
+cd /docker && git clone https://github.com/JosepTomasComellas/ssh.git ssh-src && cd ssh-src
+sudo ./scripts/server-deploy.sh        # 1a vegada: crea .env i s'atura
+sudo nano .env                         # només DOMAIN i BACKUP_RECIPIENT
+sudo ./scripts/server-deploy.sh        # desplega l'última versió (o: ./scripts/server-deploy.sh v1.0.1)
+```
+
+L'script fa `git pull`, instal·la a `/docker/ssh` (`WEBSSH_ROOT`), genera `config.json` i els secrets que falten,
+detecta la IP de Traefik, tria una subxarxa lliure (la IP del servidor dins d'aquesta xarxa és el destí SSH), resol el
+commit i el digest de la imatge i executa el desplegament amb còpia i restauració automàtica. Per veure què faria sense
+tocar res: `./scripts/server-deploy.sh --check`. Per actualitzar més endavant: la mateixa ordre.
+
+El destí SSH és **aquest mateix servidor**: cal que el firewall permeti la subxarxa de l'app al port 22
+(`ufw allow from <backend_subnet> to any port 22 proto tcp`; l'script mostra la subxarxa) i crear una clau per compte
+Linux (apartat «Identitats»). La resta d'aquesta guia explica el procés manual i serveix per entendre què fa l'script.
 ## 0. Bloqueig actual de la release
 
 `deploy/application.json` és en `status: scaffold` i el workflow `release.yml` **no publicarà imatge** fins que
