@@ -15,7 +15,7 @@ public sealed class E2ETests(Fixture fx)
         var ctx = await fx.NewContextAsync(w, h);
         var page = await ctx.NewPageAsync();
         await fx.LoginAsync(page, user, password);
-        await page.WaitForURLAsync(u => !u.Contains("/login", StringComparison.Ordinal));
+        await Waits.UrlAsync(page, u => !u.Contains("/login", StringComparison.Ordinal));
         return (ctx, page);
     }
 
@@ -58,11 +58,11 @@ public sealed class E2ETests(Fixture fx)
         await Assertions.Expect(page.Locator("[role=alert]")).ToBeVisibleAsync();
 
         await fx.LoginAsync(page, "alice-web", fx.AlicePassword);
-        await page.WaitForURLAsync(u => !u.Contains("/login", StringComparison.Ordinal));
+        await Waits.UrlAsync(page, u => !u.Contains("/login", StringComparison.Ordinal));
         await page.ClickAsync("button:text('Surt')");
-        await page.WaitForURLAsync("**/login");
+        await Waits.UrlAsync(page, u => u.EndsWith("/login", StringComparison.Ordinal));
         await page.GotoAsync("/terminal");
-        await page.WaitForURLAsync("**/login**"); // sense sessió no s'hi pot entrar
+        await Waits.UrlAsync(page, u => u.Contains("/login", StringComparison.Ordinal)); // sense sessió no s'hi pot entrar
         await ctx.CloseAsync();
     }
 
