@@ -61,6 +61,15 @@
           "prometheus-net": "8.2.1"
         }
       },
+      "QRCoder": {
+        "type": "Direct",
+        "requested": "[1.8.1, )",
+        "resolved": "1.8.1",
+        "contentHash": "aGfRFpU/IPexAtEOEXCNxC3fMCAqgn6kqALRvXt6LxVAW0VolSDGHiyrY+o2CJgTITOsMpsrsDi7svMJaJ9Vfg==",
+        "dependencies": {
+          "System.Drawing.Common": "6.0.0"
+        }
+      },
       "SSH.NET": {
         "type": "Direct",
         "requested": "[2026.0.0, )",
@@ -201,6 +210,11 @@
         "resolved": "1.0.52",
         "contentHash": "oNv2JtYXhpdJrX63nibx1JT3uCESOBQ1LAk7Dtz/sr0+laW0KRM6eKp4CZ3MHDR2siIkKsY8MmUkeP5DKkQQ5w=="
       },
+      "Microsoft.Win32.SystemEvents": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "hqTM5628jSsQiv+HGpiq3WKBl2c8v1KZfby2J6Pr7pEPlK9waPdgEO6b8A/+/xn/yZ9ulv8HuqK71ONy2tg67A=="
+      },
       "Mono.TextTemplating": {
         "type": "Transitive",
         "resolved": "3.0.0",
@@ -297,6 +311,14 @@
           "System.Composition.AttributedModel": "9.0.0",
           "System.Composition.Hosting": "9.0.0",
           "System.Composition.Runtime": "9.0.0"
+        }
+      },
+      "System.Drawing.Common": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "NfuoKUiP2nUWwKZN6twGqXioIe1zVD0RIj2t976A+czLHr2nY454RwwXs6JU9Htc6mwqL6Dn/nEL3dpVf2jOhg==",
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "6.0.0"
         }
       }
     }

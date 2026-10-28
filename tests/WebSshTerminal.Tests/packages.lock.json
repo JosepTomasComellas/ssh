@@ -586,6 +586,11 @@
           "Newtonsoft.Json": "13.0.3"
         }
       },
+      "Microsoft.Win32.SystemEvents": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "hqTM5628jSsQiv+HGpiq3WKBl2c8v1KZfby2J6Pr7pEPlK9waPdgEO6b8A/+/xn/yZ9ulv8HuqK71ONy2tg67A=="
+      },
       "MudBlazor": {
         "type": "Transitive",
         "resolved": "9.11.0",
@@ -616,6 +621,14 @@
         "contentHash": "/4TfTvbwIDqpaKTiWvEsjUywiHYF9zZvGZF5sK15avoDsUO/WPQbKsF8TiMaesuphdFQPK2z52P0zk6j26V0rQ==",
         "dependencies": {
           "prometheus-net": "8.2.1"
+        }
+      },
+      "QRCoder": {
+        "type": "Transitive",
+        "resolved": "1.8.1",
+        "contentHash": "aGfRFpU/IPexAtEOEXCNxC3fMCAqgn6kqALRvXt6LxVAW0VolSDGHiyrY+o2CJgTITOsMpsrsDi7svMJaJ9Vfg==",
+        "dependencies": {
+          "System.Drawing.Common": "6.0.0"
         }
       },
       "SQLitePCLRaw.bundle_e_sqlite3": {
@@ -658,6 +671,14 @@
         "type": "Transitive",
         "resolved": "10.0.14",
         "contentHash": "O/RzNwWoDzehkLlAG9hR8xooY5L41U7VUaYlcKvE3+FhHohBJqF10oLUzuv0v59VeJ62hv3uw9VoeX12zej7Sg=="
+      },
+      "System.Drawing.Common": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "NfuoKUiP2nUWwKZN6twGqXioIe1zVD0RIj2t976A+czLHr2nY454RwwXs6JU9Htc6mwqL6Dn/nEL3dpVf2jOhg==",
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "6.0.0"
+        }
       },
       "xunit.abstractions": {
         "type": "Transitive",
@@ -705,6 +726,7 @@
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.14, )",
           "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.14, )",
           "MudBlazor": "[9.11.0, )",
+          "QRCoder": "[1.8.1, )",
           "SSH.NET": "[2026.0.0, )",
           "prometheus-net.AspNetCore": "[8.2.1, )"
         }

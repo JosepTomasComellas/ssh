@@ -38,6 +38,11 @@ public sealed partial class MfaTests
     {
         await TestApp.PostFormAsync(c, "/account/mfa/start", "/account/mfa", new());
         var page = await c.GetStringAsync("/account/mfa");
+        var qr = QrRegex().Match(page);
+        Assert.True(qr.Success, "La pàgina de MFA ha de mostrar un QR en línia (SVG)");
+        var svg = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(System.Net.WebUtility.HtmlDecode(qr.Groups[1].Value)));
+        Assert.StartsWith("<svg", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret=", svg, StringComparison.Ordinal); // el QR és gràfic: la clau no apareix com a text
         var key = KeyRegex().Match(page).Groups[1].Value.Replace(" ", "", StringComparison.Ordinal);
         Assert.NotEmpty(key);
         var confirm = await TestApp.PostFormAsync(c, "/account/mfa/confirm", "/account/mfa", new() { ["code"] = Totp(key) });
@@ -129,6 +134,9 @@ public sealed partial class MfaTests
         var disable = await TestApp.PostFormAsync(c, "/account/mfa/disable", "/account/mfa", new() { ["password"] = pw });
         Assert.Contains("error=required", disable.Headers.Location!.OriginalString, StringComparison.Ordinal);
     }
+
+    [GeneratedRegex(@"<img id=""mfa-qr""[^>]*src=""data:image/svg(?:\+|&#x2B;)xml;base64,([^""]+)""")]
+    private static partial Regex QrRegex();
 
     [GeneratedRegex(@"id=""mfa-key"">([^<]+)<")]
     private static partial Regex KeyRegex();
