@@ -1,0 +1,103 @@
+@page "/admin/logs"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = WebSshTerminal.Auth.AuthSetup.AdminPolicy)]
+@using WebSshTerminal.Infrastructure
+@inject LogBuffer Buffer
+
+<PageTitle>Logs</PageTitle>
+
+<HeadContent>
+    @if (Auto is not null) { <meta http-equiv="refresh" content="10" /> }
+</HeadContent>
+
+<div class="card">
+    <div class="page-title"><MudIcon Icon="@Icons.Material.Filled.ListAlt" /><h1>Logs de l'aplicació</h1></div>
+    <p class="hint">
+        Últimes @Buffer.Count de @LogBuffer.Capacity entrades en memòria (es perden en reiniciar). No contenen secrets ni contingut de terminal.
+        Per a l'històric al servidor: <code>docker logs -f web-ssh-terminal-app-1</code>
+    </p>
+
+    <p class="quick-filters">
+        Filtres ràpids:
+        <a class="btn" href="/admin/logs?level=Error">Només errors</a>
+        <a class="btn" href="/admin/logs?level=Warning">Avisos i errors</a>
+        <a class="btn" href="/admin/logs?event=1400&level=Warning&minutes=0">Connexions SSH fallides</a>
+        <a class="btn" href="/admin/logs?level=Information&minutes=60">Tot (1 h)</a>
+    </p>
+
+    <form method="get" action="/admin/logs" class="log-filters">
+        <label for="level">Nivell mínim</label>
+        <select id="level" name="level">
+            @foreach (var l in new[] { "Trace", "Debug", "Information", "Warning", "Error", "Critical" })
+            {
+                <option value="@l" selected="@(l == LevelName)">@l</option>
+            }
+        </select>
+        <label for="q">Text</label>
+        <input id="q" name="q" value="@Q" placeholder="p. ex. SSH, hostkey, Timeout" />
+        <label for="category">Categoria</label>
+        <input id="category" name="category" value="@Category" placeholder="p. ex. SshConnector" />
+        <label for="event">Esdeveniment</label>
+        <input id="event" name="event" value="@Event" inputmode="numeric" placeholder="p. ex. 1400" size="6" />
+        <label for="minutes">Període</label>
+        <select id="minutes" name="minutes">
+            @foreach (var (v, t) in new[] { (15, "15 min"), (60, "1 hora"), (360, "6 hores"), (1440, "24 hores"), (0, "Tot") })
+            {
+                <option value="@v" selected="@(v == Minutes)">@t</option>
+            }
+        </select>
+        <label for="limit">Màxim</label>
+        <input id="limit" name="limit" type="number" min="10" max="1000" value="@Limit" />
+        <label class="check"><input type="checkbox" name="auto" value="1" checked="@(Auto is not null)" /> Refresca cada 10 s</label>
+        <button type="submit" class="btn btn-primary">Filtra</button>
+    </form>
+
+    <p role="status"><strong>@_rows.Count</strong> entrades@(_rows.Count == Limit ? " (límit assolit)" : "").</p>
+
+    <div class="table-wrap">
+        <table class="user-table log-table">
+            <thead><tr><th>Hora</th><th>Nivell</th><th>Categoria</th><th>Ev.</th><th>Missatge</th></tr></thead>
+            <tbody>
+            @foreach (var e in _rows)
+            {
+                <tr>
+                    <td class="nowrap">@e.Time.ToString("dd/MM HH:mm:ss")</td>
+                    <td><span class="lvl lvl-@e.Level">@e.Level</span></td>
+                    <td title="@e.Category">@ShortCategory(e.Category)</td>
+                    <td>@(e.EventId == 0 ? "" : e.EventId.ToString())</td>
+                    <td>
+                        @e.Message
+                        @if (e.Exception is not null)
+                        {
+                            <details><summary>Excepció</summary><pre class="log-exception">@e.Exception</pre></details>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "level")] public string? Level { get; set; }
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+    [SupplyParameterFromQuery(Name = "category")] public string? Category { get; set; }
+    [SupplyParameterFromQuery(Name = "event")] public string? Event { get; set; }
+    [SupplyParameterFromQuery(Name = "minutes")] public int? MinutesParam { get; set; }
+    [SupplyParameterFromQuery(Name = "limit")] public int? LimitParam { get; set; }
+    [SupplyParameterFromQuery(Name = "auto")] public string? Auto { get; set; }
+
+    private IReadOnlyList<LogEntry> _rows = [];
+    private int Minutes => MinutesParam ?? 120;
+    private int Limit => Math.Clamp(LimitParam ?? 200, 10, 1000);
+    private string LevelName => Enum.TryParse<LogLevel>(Level, true, out var l) && l != LogLevel.None ? l.ToString() : "Warning";
+
+    protected override void OnParametersSet()
+    {
+        var level = Enum.TryParse<LogLevel>(LevelName, true, out var parsed) ? parsed : LogLevel.Warning;
+        int? ev = int.TryParse(Event, out var n) ? n : null;
+        _rows = Buffer.Query(new LogFilter(level, Q, Category, ev, Minutes > 0 ? TimeSpan.FromMinutes(Minutes) : null, Limit));
+    }
+
+    private static string ShortCategory(string c) => c.Contains('.') ? c[(c.LastIndexOf('.') + 1)..] : c;
+}

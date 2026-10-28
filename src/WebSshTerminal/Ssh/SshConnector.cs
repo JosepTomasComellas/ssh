@@ -80,7 +80,7 @@ public sealed class SshConnector(WebSshOptions options, CredentialProtector prot
                     : ex is SocketException or SshOperationTimeoutException or SshConnectionException ? SshFailure.Unreachable
                     : SshFailure.Other;
                 AppMetrics.SshConnections.WithLabels(failure.ToString().ToLowerInvariant()).Inc();
-                Log.SshConnectFailed(logger, failure.ToString());
+                Log.SshConnectFailed(logger, failure.ToString(), ex.GetType().Name, $"{options.SshHost}:{options.SshPort}");
                 throw new SshConnectException(failure);
             }
         }

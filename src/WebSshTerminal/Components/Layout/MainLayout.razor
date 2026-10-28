@@ -17,6 +17,7 @@
                 <AuthorizeView Policy="@WebSshTerminal.Auth.AuthSetup.AdminPolicy" Context="adminCtx">
                     <a class="nav-link" href="/admin/users"><MudIcon Icon="@Icons.Material.Filled.People" />Usuaris</a>
                     <a class="nav-link" href="/admin/identities"><MudIcon Icon="@Icons.Material.Filled.VpnKey" />Identitats</a>
+                    <a class="nav-link" href="/admin/logs"><MudIcon Icon="@Icons.Material.Filled.ListAlt" />Logs</a>
                 </AuthorizeView>
                 <a class="nav-link" href="/account/mfa"><MudIcon Icon="@Icons.Material.Filled.Security" />MFA</a>
             </nav>
@@ -37,7 +38,7 @@
 </main>
 
 <footer class="source-footer">
-    @Brand.OrgName · @Brand.OrgDept ·
+    <span class="foot-extra">@Brand.OrgName · @Brand.OrgDept ·</span>
     <a href="@Options.SourceUrl" rel="noopener">Codi font</a> ·
     <a href="@(Options.SourceUrl + "/blob/main/LICENSE")" rel="noopener">Llicència AGPL-3.0</a> ·
     <span title="Revisió executada">@Revision</span>

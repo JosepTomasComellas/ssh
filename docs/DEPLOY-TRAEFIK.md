@@ -116,6 +116,30 @@ Mostra **una sola vegada** una contrasenya aleatòria de 24 caràcters (no es de
 - Una sessió de terminal aguanta un refresh i es reconnecta (tmux).
 - `docker compose logs app`: només línies d'inici; cap secret.
 
+## 7bis. Veure els logs i diagnosticar una connexió que falla
+
+**Dins l'app (recomanat):** menú **Logs** (només administradors). Mostra les últimes 5.000 entrades, amb filtres per nivell,
+text, categoria, esdeveniment i període, i refresc automàtic opcional. El filtre ràpid «Connexions SSH fallides» (esdeveniment
+1400) indica la categoria (`Unreachable`, `HostKeyRejected`, `AuthFailed`, `Other`), la causa tècnica i el destí `host:port`.
+No contenen secrets ni contingut de terminal, i es perden en reiniciar l'app.
+
+**Al servidor (històric):**
+```bash
+docker logs -f web-ssh-terminal-app-1                                   # en directe
+docker logs --since 30m web-ssh-terminal-app-1 2>&1 | grep -E '"LogLevel":"(Warning|Error|Critical)"'   # només avisos i errors
+```
+Els logs són JSON, un objecte per línia, amb l'hora local i el codi d'esdeveniment (`EventId`).
+
+**Per a l'usuari:** quan el terminal no arriba a connectar, la pàgina ja no diu només «No s'ha pogut reconnectar»: mostra el motiu
+(`unreachable`, `hostkey`, `authfailed`…) amb una explicació. Els codis i què fer:
+
+| Codi | Significat | Què fer |
+|---|---|---|
+| `unreachable` | L'app no arriba al `sshd` (port, adreça o firewall) | Comprova el port (`SSH_PORT` al `.env`) i `nc -zv 172.16.50.1 <port>` des de la xarxa de l'app |
+| `hostkey` | La clau de host no coincideix amb `known_hosts` | `sudo ./scripts/server-deploy.sh` regenera `known_hosts` |
+| `authfailed` | El servidor no accepta la clau de la identitat | Clau no autoritzada, compte incorrecte, o `from=` que no cobreix la subxarxa de l'app |
+| `ok` | El `sshd` respon bé: falla el WebSocket | Proxy (Traefik) o orígens permesos |
+
 ## 8. MFA (TOTP)
 
 Hi ha TOTP (RFC 6238) amb 10 codis de recuperació d'un sol ús. Amb `require_mfa: true`, cada usuari (admin inclòs) és
