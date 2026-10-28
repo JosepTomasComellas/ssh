@@ -1,0 +1,15 @@
+name: Acceptance (manual)
+# Executa les mateixes comprovacions d'acceptació que la release, sense tag ni publicació.
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: dotnet --version
+      - run: sudo apt-get update && sudo apt-get install -y age shellcheck
+      - run: bash tests/application-release.sh

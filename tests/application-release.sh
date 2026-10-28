@@ -17,6 +17,10 @@ echo "$out" | grep -q "has no vulnerable packages" || { echo "$out"; exit 1; }
 echo "== Proves .NET (inclou OpenSSH/tmux reals en Docker)"
 dotnet test -c Release --nologo -v q
 
+# L'SDK de la màquina pot reescriure els lockfiles amb dependències implícites d'una altra versió; el build
+# de Docker usa --locked-mode amb l'SDK fixat, així que es restauren els lockfiles confirmats.
+git checkout -- src/WebSshTerminal/packages.lock.json tests/WebSshTerminal.Tests/packages.lock.json
+
 echo "== Entorn local, e2e de navegador (Nginx i Traefik) i proves d'operació"
 python3 scripts/dev.py up --proxy nginx
 python3 scripts/dev.py test --proxy nginx
