@@ -42,7 +42,12 @@ public sealed class Fixture : IAsyncLifetime
         await using var ctx = await NewContextAsync();
         var page = await ctx.NewPageAsync();
 
-        await LoginAdminAsync(page);
+        try { await LoginAdminAsync(page); }
+        catch (Exception ex) when (ex is TimeoutException or PlaywrightException)
+        {
+            var text = await page.InnerTextAsync("body").ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : "(sense cos)");
+            throw new InvalidOperationException($"Login admin: {ex.GetType().Name} a {page.Url} :: {text[..Math.Min(300, text.Length)]}", ex);
+        }
         await EnsureIdentityAsync(page, "e2e-alice", "alice");
         await EnsureIdentityAsync(page, "e2e-bob", "bob");
         await EnsureWebUserAsync(page, "alice-web", "e2e-alice", AlicePassword);
@@ -70,8 +75,13 @@ public sealed class Fixture : IAsyncLifetime
         Playwright.Dispose();
     }
 
-    public Task<IBrowserContext> NewContextAsync(int width = 1280, int height = 800) =>
-        Browser.NewContextAsync(new() { IgnoreHTTPSErrors = true, ViewportSize = new() { Width = width, Height = height }, BaseURL = BaseUrl });
+    public async Task<IBrowserContext> NewContextAsync(int width = 1280, int height = 800)
+    {
+        var ctx = await Browser.NewContextAsync(new() { IgnoreHTTPSErrors = true, ViewportSize = new() { Width = width, Height = height }, BaseURL = BaseUrl });
+        ctx.SetDefaultTimeout(60000); // arrencades fredes (runners de CI) poden trigar més de 30 s
+        ctx.SetDefaultNavigationTimeout(60000);
+        return ctx;
+    }
 
     public async Task LoginAsync(IPage page, string user, string password)
     {
