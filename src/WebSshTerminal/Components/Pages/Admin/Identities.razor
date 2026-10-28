@@ -6,8 +6,8 @@
 
 <PageTitle>Identitats SSH</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <h1 class="mud-typography mud-typography-h5">Identitats SSH</h1>
+<div class="card">
+    <div class="page-title"><MudIcon Icon="@Icons.Material.Filled.VpnKey" /><h1>Identitats SSH</h1></div>
     <p>
         Cada identitat és un compte Linux del servidor remot amb la seva clau privada, desada xifrada.
         La clau no es torna a mostrar després de desar-la. El <code>sudo</code> es concedeix al servidor remot, no aquí.
@@ -31,10 +31,10 @@
         <textarea id="privateKey" name="privateKey" rows="6" required autocomplete="off" spellcheck="false"></textarea>
         <label for="note">Nota (opcional)</label>
         <input id="note" name="note" maxlength="200" />
-        <button type="submit">Desa la identitat</button>
+        <button type="submit" class="btn btn-primary">Desa la identitat</button>
     </form>
 
-    <table class="user-table">
+    <div class="table-wrap"><table class="user-table">
         <thead><tr><th>Nom</th><th>Compte Linux</th><th>Assignada a</th><th>Nota</th><th></th></tr></thead>
         <tbody>
         @foreach (var i in _rows)
@@ -52,8 +52,8 @@
             </tr>
         }
         </tbody>
-    </table>
-</MudContainer>
+    </table></div>
+</div>
 
 @code {
     [SupplyParameterFromQuery] public string? Error { get; set; }

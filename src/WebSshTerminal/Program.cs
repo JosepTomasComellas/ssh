@@ -40,6 +40,7 @@ if (problems.Count > 0)
 
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton(secrets);
+builder.Services.AddSingleton<BrandingService>();
 builder.Services.Configure<HostOptions>(h => h.ShutdownTimeout = TimeSpan.FromSeconds(options.ShutdownTimeoutSeconds));
 
 // Confiança de proxys: només IP exactes configurades; mai confiança global.
@@ -79,6 +80,15 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 app.UseHttpMetrics(o => o.ReduceStatusCodeCardinality());
+// Branding de la instància (logo/fons) des del volum de dades; públic perquè la pantalla d'accés l'ha de mostrar.
+var brandingDir = new BrandingService(options).InstanceDirectory;
+Directory.CreateDirectory(brandingDir);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(brandingDir),
+    RequestPath = BrandingService.InstanceRequestPath,
+});
+
 app.UseRouting(); // explícit: rate limiter, autorització i antiforgery necessiten l'endpoint ja resolt
 
 // Les pàgines d'estat només per a la UI: re-executar /not-found amb DELETE/POST de l'API

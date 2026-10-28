@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+@inject WebSshOptions Options
+@inject WebSshTerminal.Configuration.BrandingService Brand
+
+<div class="auth-wrap">
+    <main class="card auth-card">
+        <img class="auth-symbol" src="@Brand.SymbolUrl" alt="" />
+        <h1>@Brand.AppName</h1>
+        <p class="muted">@Brand.OrgName · @Brand.OrgDept</p>
+        @Body
+    </main>
+</div>
+
+<footer class="source-footer">
+    <a href="@Options.SourceUrl" rel="noopener">Codi font</a> ·
+    <a href="@(Options.SourceUrl + "/blob/main/LICENSE")" rel="noopener">Llicència AGPL-3.0</a> ·
+    <span title="Revisió executada">@Revision</span>
+</footer>
+
+<TuteAppsCredit />
+
+@code {
+    private string Revision => WebSshTerminal.Infrastructure.BuildInfo.Revision[..12];
+}

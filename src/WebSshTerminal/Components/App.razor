@@ -1,11 +1,13 @@
+@inject WebSshTerminal.Configuration.BrandingService Brand
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="@ThemeClass">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <ResourcePreloader />
+    <style>@((MarkupString)Brand.CssVariables())</style>
     <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["WebSshTerminal.styles.css"]" />
@@ -32,4 +34,6 @@
     [CascadingParameter] private HttpContext? Ctx { get; set; }
 
     private bool OnTerminalPage => Ctx?.Request.Path.StartsWithSegments("/terminal") == true;
+
+    private string ThemeClass => Brand.Theme switch { "dark" => "theme-dark", "light" => "theme-light", _ => "" };
 }

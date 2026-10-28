@@ -2,5 +2,10 @@
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 @layout MainLayout
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<PageTitle>No trobat</PageTitle>
+
+<div class="card" style="max-width:640px;margin:2rem auto">
+    <div class="page-title"><MudIcon Icon="@Icons.Material.Filled.SearchOff" /><h1>Pàgina no trobada</h1></div>
+    <p>La pàgina que busques no existeix o ha canviat de lloc.</p>
+    <a class="btn" href="/">Torna a l'inici</a>
+</div>

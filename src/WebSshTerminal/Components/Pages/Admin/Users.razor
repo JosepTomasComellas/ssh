@@ -8,8 +8,8 @@
 
 <PageTitle>Usuaris</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <h1 class="mud-typography mud-typography-h5">Usuaris</h1>
+<div class="card">
+    <div class="page-title"><MudIcon Icon="@Icons.Material.Filled.People" /><h1>Usuaris</h1></div>
     @if (Error is not null)
     {
         <div role="alert" class="form-error">No s'ha pogut completar l'acció.</div>
@@ -21,10 +21,10 @@
         <input id="username" name="username" required maxlength="64" />
         <label for="role">Rol</label>
         <select id="role" name="role"><option value="user">Usuari</option><option value="admin">Administrador</option></select>
-        <button type="submit">Crea</button>
+        <button type="submit" class="btn btn-primary">Crea</button>
     </form>
 
-    <table class="user-table">
+    <div class="table-wrap"><table class="user-table">
         <thead><tr><th>Usuari</th><th>Rol</th><th>Identitat SSH</th><th>Estat</th><th>Accions</th></tr></thead>
         <tbody>
         @foreach (var u in _rows)
@@ -57,8 +57,8 @@
             </tr>
         }
         </tbody>
-    </table>
-</MudContainer>
+    </table></div>
+</div>
 
 @code {
     [SupplyParameterFromQuery] public string? Error { get; set; }

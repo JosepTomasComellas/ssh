@@ -45,6 +45,8 @@ public static partial class WebSshOptionsValidator
         if (o.ShutdownTimeoutSeconds is < 1 or > 29) errors.Add("WebSsh:ShutdownTimeoutSeconds ha de ser inferior a 30.");
 
         if (!ColorRegex().IsMatch(o.Branding.PrimaryColor)) errors.Add("WebSsh:Branding:PrimaryColor ha de ser #RRGGBB.");
+        if (!ColorRegex().IsMatch(o.Branding.NavColor)) errors.Add("WebSsh:Branding:NavColor ha de ser #RRGGBB.");
+        if (o.Branding.OrgName.Length > 80 || o.Branding.OrgDept.Length > 80) errors.Add("WebSsh:Branding:OrgName/OrgDept: màx. 80 caràcters.");
         if (o.Branding.Theme is not ("auto" or "light" or "dark")) errors.Add("WebSsh:Branding:Theme ha de ser auto, light o dark.");
         if (string.IsNullOrWhiteSpace(o.Branding.Name) || o.Branding.Name.Length > 60) errors.Add("WebSsh:Branding:Name és obligatori (màx. 60).");
         if (o.Branding.LogoUrl.Length > 0 && !(o.Branding.LogoUrl.StartsWith('/') && !o.Branding.LogoUrl.StartsWith("//")))
