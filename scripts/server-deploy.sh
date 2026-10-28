@@ -43,6 +43,9 @@ main() {
     local root image
     root="$(get WEBSSH_ROOT)"
     image="$(get GHCR_IMAGE)"
+    if [[ "$(realpath -m "$root")" == "$(realpath -m "$src")" ]]; then
+        die "El clon del codi ($src) coincideix amb l'arrel d'instal·lació ($root). Mou el clon (p. ex. mv $src ${src}-src) i executa l'script des d'allà, o defineix WEBSSH_ROOT al .env."
+    fi
 
     say "Codi font: git pull (scripts) i versió a desplegar"
     if ! git -C "$src" diff --quiet || ! git -C "$src" diff --cached --quiet; then
@@ -54,7 +57,7 @@ main() {
     git -C "$src" fetch --tags --force --quiet origin
     # El pull pot haver actualitzat aquest mateix script: es reexecuta una sola vegada amb la versió nova.
     if [[ -z "${WEBSSH_REEXEC:-}" ]]; then
-        WEBSSH_REEXEC=1 exec "$src/scripts/server-deploy.sh" "$@"
+        WEBSSH_REEXEC=1 exec bash "$src/scripts/server-deploy.sh" "$@"
     fi
     if [[ -z "${tag:-}" ]]; then
         tag="$(git -C "$src" tag --list 'v[0-9]*' --sort=-v:refname | head -n1)"
