@@ -230,8 +230,8 @@ public sealed class E2ETests(Fixture fx)
         var bar = (await page.Locator("footer.source-footer").BoundingBoxAsync())!;
         Assert.True(bar.Height <= 36, $"La barra inferior és massa alta: {bar.Height}px");
         Assert.True(bar.Y + bar.Height >= h - 1 && bar.Width >= w - 1, "La barra inferior ha de ser fixa a baix i a tot l'ample");
-        var mainBox = (await page.Locator("main.page").BoundingBoxAsync())!;
-        Assert.True(mainBox.Y + mainBox.Height <= bar.Y + 1, "El cos queda darrere de la barra inferior");
+        var contentBox = (await page.Locator(".terminal-page").BoundingBoxAsync())!; // el contingut real; main té un coixí per quedar sota la barra
+        Assert.True(contentBox.Y + contentBox.Height <= bar.Y + 1, "El cos queda darrere de la barra inferior");
 
         // Teclat: sense trampes. Amb «Tab mou el focus» es pot sortir del terminal fins al crèdit.
         await page.ClickAsync("#btn-tabfocus");
