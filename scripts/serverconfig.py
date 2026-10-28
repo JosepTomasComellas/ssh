@@ -130,6 +130,18 @@ def used_subnets() -> list[str]:
     return subnets
 
 
+def own_network_subnet(name: str = "web-ssh-terminal_backend") -> str | None:
+    """Subxarxa real de la xarxa de l'app si ja existeix (autoritat per mantenir-la entre desplegaments)."""
+    out = subprocess.run(["docker", "network", "inspect", name], capture_output=True, text=True)
+    if out.returncode != 0:
+        return None
+    for net in json.loads(out.stdout):
+        for cfg in (net.get("IPAM") or {}).get("Config") or []:
+            if cfg.get("Subnet"):
+                return cfg["Subnet"]
+    return None
+
+
 def traefik_ip(container: str, network: str) -> str:
     info = docker_json("inspect", container)
     nets = info[0]["NetworkSettings"]["Networks"]
@@ -141,11 +153,9 @@ def traefik_ip(container: str, network: str) -> str:
 def cmd_render(args: argparse.Namespace) -> None:
     env = parse_env(Path(args.env).read_text(encoding="utf-8"))
     merged = {**DEFAULTS, **env}
-    existing = {}
-    if args.existing and Path(args.existing).is_file():
-        existing = json.loads(Path(args.existing).read_text(encoding="utf-8"))
-    # La subxarxa es manté entre execucions: canviar-la obligaria a recrear la xarxa de l'app.
-    subnet = env.get("BACKEND_SUBNET") or existing.get("backend_subnet") or pick_subnet(used_subnets())
+    # La subxarxa es manté entre desplegaments només si la xarxa REAL de l'app ja existeix (canviar-la obligaria a
+    # recrear-la). Un config.json previ no és fiable: init el copia de l'exemple, amb una subxarxa de mostra.
+    subnet = env.get("BACKEND_SUBNET") or own_network_subnet() or pick_subnet(used_subnets())
     ip = traefik_ip(merged["TRAEFIK_CONTAINER"], merged["PROXY_NETWORK"])
     cfg = build_config(env, ip, subnet)
     Path(args.out).write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")

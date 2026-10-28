@@ -75,18 +75,29 @@ class ServerConfigTests(unittest.TestCase):
         with self.assertRaises(sc.ConfigError):
             sc.known_hosts_line("h", 22, "ssh-rsa AAAA x")
 
-    def test_render_keeps_existing_subnet(self):
+    def _render(self, own, used, existing_subnet=None):
         with tempfile.TemporaryDirectory() as d:
             env = Path(d, ".env")
             env.write_text(f"DOMAIN=ssh.sdslab.cat\nBACKUP_RECIPIENT={AGE}\n")
             existing = Path(d, "config.json")
-            existing.write_text(json.dumps({"backend_subnet": "172.30.77.0/24"}))
+            if existing_subnet:
+                existing.write_text(json.dumps({"backend_subnet": existing_subnet}))
             out = Path(d, "out.json")
             sc.traefik_ip = lambda c, n: "172.18.0.9"
-            sc.used_subnets = lambda: ["172.30.77.0/24"]  # ocupada per la nostra pròpia xarxa: s'ha de mantenir
+            sc.own_network_subnet = lambda *a, **k: own
+            sc.used_subnets = lambda: used
             sc.cmd_render(type("A", (), {"env": str(env), "existing": str(existing), "out": str(out)}))
-            self.assertEqual(json.loads(out.read_text())["backend_subnet"], "172.30.77.0/24")
+            return json.loads(out.read_text())["backend_subnet"]
 
+    def test_render_keeps_the_subnet_of_the_apps_real_network(self):
+        # La xarxa de l'app ja existeix (172.30.77.0/24) i figura entre les ocupades: es manté.
+        self.assertEqual(self._render("172.30.77.0/24", ["172.30.77.0/24"]), "172.30.77.0/24")
+
+    def test_render_ignores_sample_subnet_from_copied_example_config(self):
+        # Regressió: init copia l'exemple (172.30.50.0/24) i aquesta rang està ocupada per un altre projecte.
+        picked = self._render(None, ["172.30.0.0/16"], existing_subnet="172.30.50.0/24")
+        self.assertNotEqual(picked, "172.30.50.0/24")
+        self.assertEqual(picked, "172.29.50.0/24")
 
 if __name__ == "__main__":
     unittest.main()
