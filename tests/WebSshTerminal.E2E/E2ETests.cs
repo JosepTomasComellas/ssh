@@ -266,6 +266,9 @@ public sealed class E2ETests(Fixture fx)
         await Assertions.Expect(page.Locator("img.auth-symbol")).ToBeVisibleAsync();
         Assert.True(await page.Locator("img.auth-symbol").EvaluateAsync<bool>("i => i.complete && i.naturalWidth > 0"), "El símbol no ha carregat");
         Assert.Equal("#CC0000", (await page.EvaluateAsync<string>("() => getComputedStyle(document.documentElement).getPropertyValue('--brand')")).Trim());
+        // Icona de la pestanya: enllaçada i servida sense autenticació (els navegadors la demanen abans de fer login).
+        Assert.True(await page.Locator("link[rel=icon]").CountAsync() >= 1, "Falta el <link rel=icon>");
+        Assert.Equal(200, await page.EvaluateAsync<int>("() => fetch('/favicon.ico').then(r => r.status)"));
         await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, "ui-login.png") });
 
         await fx.LoginAsync(page, "admin", fx.AdminPassword);
