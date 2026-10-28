@@ -40,6 +40,9 @@ if (problems.Count > 0)
 
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton(secrets);
+var logBuffer = new LogBuffer();
+builder.Services.AddSingleton(logBuffer);
+builder.Logging.AddProvider(new BufferLoggerProvider(logBuffer)); // pantalla Admin → Logs (sense accés al socket de Docker)
 builder.Services.AddSingleton<BrandingService>();
 builder.Services.Configure<HostOptions>(h => h.ShutdownTimeout = TimeSpan.FromSeconds(options.ShutdownTimeoutSeconds));
 

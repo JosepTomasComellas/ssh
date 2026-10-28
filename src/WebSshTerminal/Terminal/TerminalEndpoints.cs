@@ -20,6 +20,8 @@ public static class OriginPolicy
 
 public static class TerminalEndpoints
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> DiagnoseCooldown = new();
+
     public static void MapTerminalEndpoints(this WebApplication app)
     {
         var api = app.MapGroup("/api/sessions").WithApiGuard();
@@ -42,6 +44,31 @@ public static class TerminalEndpoints
                 CreateResult.NoIdentity => Results.Json(new { error = "no-identity" }, statusCode: StatusCodes.Status409Conflict),
                 _ => Results.Json(new { error = "limit" }, statusCode: StatusCodes.Status429TooManyRequests),
             };
+        });
+
+        // Diagnosi: el navegador no veu per què falla l'obertura del WebSocket; aquí es prova la connexió SSH i es retorna
+        // només una categoria segura (mai detalls del servidor ni de la credencial).
+        api.MapPost("/{id:guid}/diagnose", async (Guid id, HttpContext ctx, UserManager<AppUser> um, TerminalSessionService sessions, SshConnector connector) =>
+        {
+            var userId = um.GetUserId(ctx.User)!;
+            var now = DateTime.UtcNow;
+            var last = DiagnoseCooldown.GetOrAdd(userId, DateTime.MinValue);
+            if (now - last < TimeSpan.FromSeconds(3)) return Results.StatusCode(StatusCodes.Status429TooManyRequests);
+            DiagnoseCooldown[userId] = now;
+
+            var session = await sessions.GetOwnedAsync(userId, id);
+            if (session is null) return Results.NotFound();
+            var identity = await sessions.GetIdentityAsync(session.SshIdentityId);
+            if (identity is null) return Results.Json(new { ok = false, reason = "no-identity" });
+            try
+            {
+                using var client = await connector.ConnectAsync(identity, ctx.RequestAborted);
+                return Results.Json(new { ok = true, reason = "ok" });
+            }
+            catch (SshConnectException ex)
+            {
+                return Results.Json(new { ok = false, reason = ex.Failure switch { SshFailure.HostKeyRejected => "hostkey", SshFailure.AuthFailed => "authfailed", SshFailure.Unreachable => "unreachable", _ => "other" } });
+            }
         });
 
         api.MapDelete("/{id:guid}", async (Guid id, HttpContext ctx, UserManager<AppUser> um, TerminalSessionService sessions, LiveSessions live) =>

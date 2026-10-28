@@ -171,6 +171,15 @@ public sealed class E2ETests(Fixture fx)
     {
         var (ctx, page) = await LoginAsync("alice-web", fx.AlicePassword);
         await page.GotoAsync("/terminal");
+        // El panell de fitxers és amagat per defecte i s'obre amb el botó; el selector no pot sobresortir del panell.
+        await Assertions.Expect(page.Locator("#files-panel")).ToBeHiddenAsync();
+        await Assertions.Expect(page.Locator("#btn-files")).ToHaveAttributeAsync("aria-expanded", "false");
+        await page.ClickAsync("#btn-files");
+        await Assertions.Expect(page.Locator("#files-panel")).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("#btn-files")).ToHaveAttributeAsync("aria-expanded", "true");
+        var panel = (await page.Locator("#files-panel").BoundingBoxAsync())!;
+        var input = (await page.Locator("#upload-file").BoundingBoxAsync())!;
+        Assert.True(input.X + input.Width <= panel.X + panel.Width + 0.5, "El selector de fitxers sobresurt del panell");
         var name = $"e2e-{Guid.NewGuid():N}.txt";
 
         await page.SetInputFilesAsync("#upload-file", new FilePayload { Name = name, MimeType = "text/plain", Buffer = "contingut-e2e"u8.ToArray() });
@@ -217,6 +226,13 @@ public sealed class E2ETests(Fixture fx)
                       && term.Y < creditNow.Y + creditNow.Height && term.Y + term.Height > creditNow.Y;
         Assert.False(overlap, "El crèdit tapa el terminal");
 
+        // Barra inferior: fina, fixa, a tot l'ample, i el cos no queda darrere.
+        var bar = (await page.Locator("footer.source-footer").BoundingBoxAsync())!;
+        Assert.True(bar.Height <= 36, $"La barra inferior és massa alta: {bar.Height}px");
+        Assert.True(bar.Y + bar.Height >= h - 1 && bar.Width >= w - 1, "La barra inferior ha de ser fixa a baix i a tot l'ample");
+        var mainBox = (await page.Locator("main.page").BoundingBoxAsync())!;
+        Assert.True(mainBox.Y + mainBox.Height <= bar.Y + 1, "El cos queda darrere de la barra inferior");
+
         // Teclat: sense trampes. Amb «Tab mou el focus» es pot sortir del terminal fins al crèdit.
         await page.ClickAsync("#btn-tabfocus");
         await page.Locator("#terminal textarea").FocusAsync(); // pitjor cas: el focus és dins xterm
@@ -258,7 +274,7 @@ public sealed class E2ETests(Fixture fx)
         await Assertions.Expect(page.Locator("section.hero h1")).ToContainTextAsync("Hola, admin");
         await page.ScreenshotAsync(new() { Path = Path.Combine(Fixture.ResultsDir, "ui-home.png") });
 
-        foreach (var (path, name) in new[] { ("/admin/users", "ui-users"), ("/admin/identities", "ui-identities"), ("/account/mfa", "ui-mfa") })
+        foreach (var (path, name) in new[] { ("/admin/users", "ui-users"), ("/admin/identities", "ui-identities"), ("/admin/logs", "ui-logs"), ("/account/mfa", "ui-mfa") })
         {
             await page.GotoAsync(path);
             await Assertions.Expect(page.Locator("main .card h1")).ToBeVisibleAsync();

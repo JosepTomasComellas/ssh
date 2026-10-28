@@ -27,8 +27,8 @@ internal static partial class Log
     [LoggerMessage(1311, LogLevel.Warning, "Compte bloquejat per intents fallits.")]
     public static partial void LockedOut(ILogger logger);
 
-    [LoggerMessage(1400, LogLevel.Warning, "Connexió SSH fallida (categoria {Category}).")]
-    public static partial void SshConnectFailed(ILogger logger, string category);
+    [LoggerMessage(1400, LogLevel.Warning, "Connexió SSH fallida (categoria {Category}, causa {Cause}, destí {Destination}).")]
+    public static partial void SshConnectFailed(ILogger logger, string category, string cause, string destination);
 
     [LoggerMessage(1401, LogLevel.Information, "Terminal connectat; sessions actives: {Active}.")]
     public static partial void TerminalAttached(ILogger logger, int active);

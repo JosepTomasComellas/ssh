@@ -69,6 +69,30 @@
     connect(id);
   }
 
+  // Quan el WebSocket no arriba a obrir-se, el navegador no diu per què: es demana al servidor una diagnosi
+  // (només categories segures, mai detalls del servidor ni de la credencial).
+  const REASONS = {
+    ok: 'El servidor SSH respon correctament, però el WebSocket no s\'obre: revisa el proxy (Traefik/Nginx) i els orígens permesos.',
+    unreachable: 'L\'app no arriba al servidor SSH (port, adreça o firewall). Avisa l\'administrador.',
+    hostkey: 'La clau del servidor SSH no coincideix amb la configurada (known_hosts). Avisa l\'administrador.',
+    authfailed: 'El servidor SSH no accepta la clau d\'aquesta identitat (clau no autoritzada, compte incorrecte o restricció from=).',
+    other: 'Error inesperat en connectar amb el servidor SSH. Avisa l\'administrador.',
+    'no-identity': 'El teu compte no té cap identitat SSH assignada. Demana-ho a un administrador.',
+    'not-found': 'Aquesta sessió ja no existeix. Crea\'n una de nova.',
+    cooldown: 'Espera uns segons abans de tornar-ho a provar.',
+  };
+
+  async function diagnose(id) {
+    setStatus('Connexió fallida');
+    try {
+      const res = await api('POST', '/api/sessions/' + id + '/diagnose');
+      const body = await res.json().catch(() => ({}));
+      const reason = res.status === 404 ? 'not-found' : res.status === 429 ? 'cooldown' : (body.reason || 'other');
+      showError((REASONS[reason] || REASONS.other) + ' [codi: ' + reason + ']');
+    } catch (_) {
+      showError('No s\'ha pogut connectar. Comprova la teva connexió i torna-ho a provar.');
+    }
+  }
   function connect(id) {
     if (!id) { showError('Tria o crea una sessió.'); return; }
     disconnect(true);
@@ -77,9 +101,11 @@
     manualClose = false;
     setStatus('Connectant…');
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    let opened = false;
     ws = new WebSocket(proto + '://' + location.host + '/ws/terminal/' + id);
     ws.binaryType = 'arraybuffer';
     ws.onopen = () => {
+      opened = true;
       retries = 0;
       setConnected(true);
       setStatus('Connectat');
@@ -94,6 +120,7 @@
       setConnected(false);
       ws = null;
       if (manualClose) { setStatus('Desconnectat'); return; }
+      if (!opened) { diagnose(id); return; } // no s'ha arribat a connectar: reintentar no serveix de res
       if (retries < 3) {
         retries += 1;
         setStatus('Connexió perduda. Reintentant (' + retries + '/3)…');
@@ -238,5 +265,19 @@
 
   window.addEventListener('beforeunload', () => { manualClose = true; if (ws) ws.close(1000, 'unload'); });
 
-  refreshSessions().then(() => { listFiles(); });
+  // El panell de fitxers és amagat per defecte i es carrega només quan s'obre.
+  const filesBtn = $('btn-files');
+  const filesPanel = $('files-panel');
+  const page = document.querySelector('.terminal-page');
+  let filesLoaded = false;
+  filesBtn.addEventListener('click', () => {
+    const open = filesPanel.hidden;
+    filesPanel.hidden = !open;
+    page.classList.toggle('files-open', open);
+    filesBtn.setAttribute('aria-expanded', String(open));
+    if (open && !filesLoaded) { filesLoaded = true; listFiles(); }
+    setTimeout(() => fit.fit(), 50); // el terminal canvia d'ample
+  });
+
+  refreshSessions();
 })();
