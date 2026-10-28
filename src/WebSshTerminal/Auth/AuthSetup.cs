@@ -38,7 +38,7 @@ public static class AuthSetup
                 o.Password.RequireUppercase = false;
                 o.Password.RequireLowercase = false;
                 o.User.RequireUniqueEmail = false;
-                o.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+                o.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@";
                 o.Lockout.AllowedForNewUsers = true;
                 o.Lockout.MaxFailedAccessAttempts = 5;
                 o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
@@ -94,7 +94,7 @@ public static class AuthSetup
         {
             var id = await base.GenerateClaimsAsync(user);
             if (user.MustChangePassword) id.AddClaim(new Claim(MustChangeClaim, "1"));
-            if (webOptions.RequireMfa && !user.TwoFactorEnabled) id.AddClaim(new Claim(MfaPendingClaim, "1"));
+            if (webOptions.RequireMfa && !user.TwoFactorEnabled && !(user.MfaGraceUntilUtc is { } grace && grace > DateTime.UtcNow)) id.AddClaim(new Claim(MfaPendingClaim, "1"));
             return id;
         }
     }

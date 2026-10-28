@@ -15,6 +15,7 @@ public static class AuditOps
     public const string IdentityCreate = "identity.create";
     public const string IdentityAssign = "identity.assign";
     public const string IdentityDelete = "identity.delete";
+    public const string AdminCreate = "admin.create";
 }
 
 public static class AuditResults

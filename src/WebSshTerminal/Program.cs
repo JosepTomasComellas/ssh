@@ -70,6 +70,9 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 var app = builder.Build();
 
+// Ordres d'administració (p. ex. --create-admin): no arrenquen el servidor web ni els serveis en segon pla.
+if (args.Contains("--create-admin")) return await AdminCommands.RunAsync(app.Services, args);
+
 // Port de gestió: només /metrics, abans de qualsevol altre middleware.
 app.MapWhen(c => MetricsEndpoint.IsManagementRequest(c, options.MetricsPort), b => b.Run(ctx => MetricsEndpoint.HandleAsync(ctx, secrets.MetricsToken)));
 

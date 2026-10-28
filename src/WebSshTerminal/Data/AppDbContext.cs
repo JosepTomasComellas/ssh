@@ -14,6 +14,9 @@ public sealed class AppUser : IdentityUser
 
     /// <summary>Identitat SSH (compte Linux + credencial) assignada explícitament per un administrador.</summary>
     public Guid? SshIdentityId { get; set; }
+
+    /// <summary>Si és futur, aquest usuari no queda bloquejat per la política RequireMfa fins a aquesta data (UTC).</summary>
+    public DateTime? MfaGraceUntilUtc { get; set; }
 }
 
 /// <summary>Compte Linux remot i la seva clau privada, xifrada en repòs amb la clau mestra de l'app.</summary>
