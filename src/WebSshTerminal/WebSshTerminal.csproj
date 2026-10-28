@@ -20,7 +20,9 @@
     <!-- Logo original de TuteApps: una sola còpia, a assets/branding. -->
     <Content Include="..\..\assets\branding\TuteApps_Logo.png" Link="wwwroot\branding\TuteApps_Logo.png" CopyToPublishDirectory="PreserveNewest" />
     <!-- Branding per defecte de la instància (substituïble sense recompilar: <dades>/branding/). -->
-    <Content Include="..\..\assets\branding\salesians-*" Link="wwwroot\branding\%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\branding\salesians-*" Exclude="..\..\assets\branding\salesians-favicon.ico" Link="wwwroot\branding\%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <!-- /favicon.ico a l'arrel: els navegadors el demanen sense autenticació encara que no hi hagi <link>. -->
+    <Content Include="..\..\assets\branding\salesians-favicon.ico" Link="wwwroot\favicon.ico" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
