@@ -239,10 +239,12 @@ class Controller:
 
     def probe(self, item):
         url = "https://" + item["domain"] + "/health/ready"
-        # Default CA trust; redirects are rejected by checking the final URL.
+        # A first deployment may have to wait for the proxy to obtain a certificate (ACME), so retry for a while.
+        deadline = time.monotonic() + int(os.environ.get("WEBSSH_PROBE_SECONDS", "180"))
         last = None
-        for _ in range(6):
+        while True:
             try:
+                # Default CA trust; redirects are rejected by checking the final URL.
                 with urllib.request.urlopen(url, timeout=10) as response:
                     require(response.geturl() == url, "Readiness URL redirected")
                     value = json.loads(response.read(4096))
@@ -250,9 +252,14 @@ class Controller:
                 return
             except (OSError, ValueError, Error) as exc:
                 last = exc
-                time.sleep(2)
-        raise Error("HTTPS readiness failed: " + str(last))
-
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(3)
+        hint = ""
+        if "CERTIFICATE_VERIFY_FAILED" in str(last):
+            hint = (" -- the proxy still serves its default certificate: check that the domain points to this server, that port 443"
+                    " is reachable from the Internet, and the proxy's ACME logs (e.g. docker logs traefik | grep -i acme)")
+        raise Error("HTTPS readiness failed: " + str(last) + hint)
     def start(self, item):
         self.compose(item, "up", "--detach", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "120")
         self.probe(item)
