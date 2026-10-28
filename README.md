@@ -37,7 +37,7 @@ Navegador ──HTTPS/WSS──▶ Nginx o Traefik ──▶ App (ASP.NET Core 1
 | Terminal interactiu (xterm.js), resize, reconnexió a tmux, límits de sessions i d'inactivitat | Fet |
 | Gestió d'identitats SSH i assignació (admin) | Fet |
 | SFTP: llistar, pujar (amb confirmació de sobreescriptura), baixar; camins validats, enllaços simbòlics rebutjats | Fet |
-| Porta-retalls (només amb acció explícita de l'usuari) | Fet |
+| Porta-retalls (només amb acció explícita): botons, Ctrl+Maj+C i **clic dret** com a Windows Terminal (copia si hi ha selecció, enganxa si no; Maj+clic dret = menú del navegador) | Fet |
 | Pantalla Admin → Logs amb filtres i diagnosi d'errors de connexió al terminal | Fet |
 | Auditoria de metadades (actor, hora, sessió, operació, resultat, bytes) | Fet |
 | Mètriques Prometheus agregades + dashboard Grafana | Fet (dashboard sense validar amb dades reals) |
