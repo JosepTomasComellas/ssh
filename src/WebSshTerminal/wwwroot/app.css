@@ -75,3 +75,5 @@ html, body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }
 .terminal-toolbar button[aria-pressed="true"] { background: #1565c0; color: #fff; border-color: #0d47a1; }
 .terminal-files button[type="button"].files-dir, .files-list button { border: 0; background: none; }
 button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+
+.mfa-qr { background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }

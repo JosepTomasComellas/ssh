@@ -30,11 +30,14 @@
     }
     else
     {
-        <p>1. A l'aplicació d'autenticació, afegeix un compte <b>manualment</b> amb aquesta clau (tipus «basat en temps»):</p>
-        <p><code id="mfa-key">@_key</code></p>
-        <p>O enganxa aquest enllaç <code>otpauth</code> si l'aplicació l'admet:</p>
-        <p><code style="word-break:break-all">@_uri</code></p>
-        <p>2. Escriu el codi que et mostra per confirmar:</p>
+        <p>1. Escaneja aquest QR amb l'aplicació d'autenticació (Aegis, 2FAS, Google Authenticator…):</p>
+        <p><img id="mfa-qr" class="mfa-qr" src="@_qr" alt="Codi QR per afegir aquest compte a l'aplicació d'autenticació" width="240" height="240" /></p>
+        <details>
+            <summary>No pots escanejar? Introdueix la clau manualment</summary>
+            <p>Afegeix un compte <b>manualment</b> amb aquesta clau (tipus «basat en temps»):</p>
+            <p><code id="mfa-key">@_key</code></p>
+        </details>
+        <p>2. Escriu el codi de 6 dígits que et mostra l'aplicació per confirmar:</p>
         <form method="post" action="/account/mfa/confirm" class="plain-form">
             <AntiforgeryToken />
             <label for="code">Codi (6 dígits)</label>
@@ -50,7 +53,7 @@
 
     private bool _enabled;
     private string? _key;
-    private string? _uri;
+    private string? _qr;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,6 +65,6 @@
         var raw = await Users.GetAuthenticatorKeyAsync(user);
         if (string.IsNullOrEmpty(raw)) return; // encara no s'ha iniciat l'activació
         _key = string.Join(' ', Enumerable.Range(0, (raw.Length + 3) / 4).Select(i => raw.Substring(i * 4, Math.Min(4, raw.Length - i * 4)))).ToLowerInvariant();
-        _uri = MfaEndpoints.OtpAuthUri(Options.Branding.Name, user.UserName ?? "", raw);
+        _qr = QrCodes.SvgDataUri(MfaEndpoints.OtpAuthUri(Options.Branding.Name, user.UserName ?? "", raw));
     }
 }
