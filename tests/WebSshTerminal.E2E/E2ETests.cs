@@ -297,4 +297,39 @@ public sealed class E2ETests(Fixture fx)
         Assert.False(overflow, "Hi ha desbordament horitzontal en mòbil");
         await ctx.CloseAsync();
     }
+
+    [Fact]
+    public async Task Right_click_copies_a_selection_and_pastes_when_nothing_is_selected()
+    {
+        var ctx = await fx.NewContextAsync();
+        await ctx.GrantPermissionsAsync(["clipboard-read", "clipboard-write"], new() { Origin = Fixture.BaseUrl });
+        var page = await ctx.NewPageAsync();
+        await fx.LoginAsync(page, "alice-web", fx.AlicePassword);
+        await Waits.UrlAsync(page, u => !u.Contains("/login", StringComparison.Ordinal));
+        await NewSession(page);
+
+        await Type(page, "printf 'copy-%s\\n' rightclick");
+        await WaitForTerminal(page, "copy-rightclick");
+
+        // Selecciona la paraula de la línia de sortida (la comanda ecoada no conté «copy-rightclick» seguit).
+        var row = page.Locator(".xterm-rows > div").Filter(new() { HasTextString = "copy-rightclick" });
+        await row.DblClickAsync(new() { Position = new() { X = 15, Y = 6 } });
+
+        // Clic dret amb selecció: copia i buida la selecció.
+        await page.Locator("#terminal").ClickAsync(new() { Button = MouseButton.Right });
+        await Assertions.Expect(page.Locator("#status")).ToHaveTextAsync("Copiat");
+        Assert.Equal("copy-rightclick", await page.EvaluateAsync<string>("() => navigator.clipboard.readText()"));
+
+        // Clic dret sense selecció: enganxa el porta-retalls a la shell (no s'executa: no hi ha Enter).
+        await page.Locator("#terminal").ClickAsync(new() { Button = MouseButton.Right });
+        await Assertions.Expect(page.Locator("#status")).ToHaveTextAsync("Enganxat");
+        for (var i = 0; i < 50; i++)
+        {
+            if (System.Text.RegularExpressions.Regex.Matches(await TerminalText(page), "copy-rightclick").Count >= 2) break;
+            await Task.Delay(200);
+        }
+        Assert.True(System.Text.RegularExpressions.Regex.Matches(await TerminalText(page), "copy-rightclick").Count >= 2,
+            "El text enganxat no ha arribat a la shell");
+        await ctx.CloseAsync();
+    }
 }

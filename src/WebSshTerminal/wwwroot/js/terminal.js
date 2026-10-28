@@ -159,6 +159,11 @@
       setTabMode(!tabMovesFocus);
       return false;
     }
+    if (ev.type === 'keydown' && ev.ctrlKey && ev.shiftKey && !ev.altKey && ev.key.toLowerCase() === 'c') {
+      ev.preventDefault();
+      copySelection(false);
+      return false;
+    }
     if (tabMovesFocus && ev.key === 'Tab') return false; // el navegador mou el focus
     return true;
   });
@@ -186,18 +191,30 @@
     await refreshSessions();
   });
 
-  // Porta-retalls: només per acció explícita de l'usuari (clic); el contingut no es desa.
-  btn.copy.addEventListener('click', async () => {
+  // Porta-retalls: només per acció explícita de l'usuari (botó, drecera o clic dret); el contingut no es desa ni s'envia enlloc.
+  async function copySelection(clearAfter) {
     const sel = term.getSelection();
     if (!sel) { setStatus('No hi ha cap selecció'); return; }
-    try { await navigator.clipboard.writeText(sel); setStatus('Copiat'); }
-    catch (_) { showError('El navegador no ha permès copiar al porta-retalls.'); }
-  });
-  btn.paste.addEventListener('click', async () => {
-    try { term.paste(await navigator.clipboard.readText()); }
-    catch (_) { showError('El navegador no ha permès llegir el porta-retalls.'); }
-  });
+    try {
+      await navigator.clipboard.writeText(sel);
+      setStatus('Copiat');
+      if (clearAfter) term.clearSelection();
+    } catch (_) { showError('El navegador no ha permès copiar al porta-retalls.'); }
+  }
+  async function pasteFromClipboard() {
+    try { term.paste(await navigator.clipboard.readText()); setStatus('Enganxat'); }
+    catch (_) { showError('El navegador no ha permès llegir el porta-retalls. Prova Ctrl+Maj+V.'); }
+  }
+  btn.copy.addEventListener('click', () => copySelection(false));
+  btn.paste.addEventListener('click', pasteFromClipboard);
 
+  // Clic dret com a Windows Terminal/PuTTY: amb selecció la copia; sense selecció, enganxa.
+  // Maj+clic dret obre el menú natiu del navegador.
+  $('terminal').addEventListener('contextmenu', (ev) => {
+    if (ev.shiftKey) return;
+    ev.preventDefault();
+    if (term.hasSelection()) copySelection(true); else pasteFromClipboard();
+  });
   // ---- Fitxers ----
   const pathInput = $('files-path');
   const listEl = $('files-list');
