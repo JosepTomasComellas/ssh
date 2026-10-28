@@ -313,7 +313,9 @@ public sealed class E2ETests(Fixture fx)
 
         // Selecciona la paraula de la línia de sortida (la comanda ecoada no conté «copy-rightclick» seguit).
         var row = page.Locator(".xterm-rows > div").Filter(new() { HasTextString = "copy-rightclick" });
-        await row.DblClickAsync(new() { Position = new() { X = 15, Y = 6 } });
+        // Per coordenades: xterm cobreix les files amb capes i Playwright esperaria indefinidament que l'element rebi el ratolí.
+        var box = (await row.BoundingBoxAsync())!;
+        await page.Mouse.DblClickAsync(box.X + 15, box.Y + (box.Height / 2));
 
         // Clic dret amb selecció: copia i buida la selecció.
         await page.Locator("#terminal").ClickAsync(new() { Button = MouseButton.Right });

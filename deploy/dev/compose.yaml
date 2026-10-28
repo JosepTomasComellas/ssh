@@ -19,6 +19,7 @@ x-app-env: &app-env
   WebSsh__MetricsTokenFile: /run/secrets/metrics_token
   WebSsh__SshHost: ssh-fixture
   WebSsh__SshPort: "22"
+  WebSsh__MaxSessionsPerUser: "10"          # només dev: l'e2e crea moltes sessions amb el mateix usuari
   WebSsh__LoginRateLimitPerMinute: "200"   # només dev: l'e2e fa molts logins des d'una sola IP
   WebSsh__SourceUrl: https://github.com/JosepTomasComellas/ssh
   AllowedHosts: localhost
