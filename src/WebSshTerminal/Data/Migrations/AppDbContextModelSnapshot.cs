@@ -173,6 +173,9 @@ namespace WebSshTerminal.Data.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("MfaGraceUntilUtc")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("MustChangePassword")
                         .HasColumnType("INTEGER");
 

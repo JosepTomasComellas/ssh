@@ -98,6 +98,17 @@ per a `status`, `backup`, `rollback` i `recover`.
 3. **Admin → Usuaris:** crea els usuaris i assigna'ls una identitat cadascun.
 4. Al servidor remot, limita `sudo` per compte (`/etc/sudoers.d/`); l'app no concedeix privilegis.
 
+## 6bis. Administrador global per a la primera administració (sense OTP temporalment)
+
+Si vols un compte propi en lloc de l'`admin` inicial (p. ex. `admin@escola.cat`) i no voleu fer el MFA el primer dia:
+
+```bash
+sudo ./scripts/create-admin.sh admin@escola.cat        # 7 dies sense MFA obligatori (per defecte)
+sudo ./scripts/create-admin.sh admin@escola.cat 3      # 3 dies;  0 = MFA obligatori des del primer accés
+```
+
+Mostra **una sola vegada** una contrasenya aleatòria de 24 caràcters (no es desa ni es registra) i l'usuari l'ha de canviar en entrar. Amb `require_mfa: true`, aquest compte pot treballar sense OTP **només fins que caduqui l'exempció** (màx. 30 dies); després l'app el redirigeix a activar-lo. És temporal a propòsit: un administrador pot crear identitats i, per tant, donar accés a shells. Recomanacions: activa el MFA tan aviat com puguis, i desactiva (Admin → Usuaris → Desactiva) o protegeix amb MFA l'`admin` inicial. L'ordre no sobreescriu mai un usuari existent.
+
 ## 7. Comprovacions després del desplegament
 
 - `https://<domini>/health/ready` retorna `{"status":"ok","revision":"<commit>"}` amb el commit esperat.
