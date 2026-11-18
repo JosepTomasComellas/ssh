@@ -1,0 +1,11 @@
+[Unit]
+Description=Web SSH Terminal: còpia xifrada, retenció i sincronització
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env bash @SRC@/scripts/backup-run.sh
+# La còpia atura l'app; deixa temps per a l'aturada, la còpia i la sincronització.
+TimeoutStartSec=30min
+Nice=10

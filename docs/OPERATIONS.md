@@ -47,8 +47,36 @@ Atura l'app, envia directament per pipe dades, secrets, configuració i estat
 cap a `age`, i torna a aixecar la versió activa. No crea un tar en clar.
 La clau privada de desxifrat queda fora del servidor. Una còpia fallida deixa
 un `.partial` xifrat per diagnosticar-la; no es tracta com a còpia vàlida.
-Copiar les còpies a un destí extern protegit i definir retenció i monitoratge
-d'espai. El projecte no elimina còpies ni imatges de manera automàtica.
+`manage.py` no elimina còpies ni imatges: la programació, la retenció i la
+còpia externa les fan els scripts següents.
+
+### Còpies programades
+
+```bash
+sudo ./scripts/install-backup-timer.sh      # instal·la webssh-backup.timer (cada nit, BACKUP_TIME)
+sudo systemctl start webssh-backup.service  # prova manual
+journalctl -u webssh-backup.service -n 30 --no-pager
+sudo ./scripts/install-backup-timer.sh --remove
+```
+
+`scripts/backup-run.sh` fa, en ordre: còpia (`manage.py backup`, l'app s'atura
+uns segons), retenció (es conserven les `BACKUP_KEEP` més noves, 30 per
+defecte; mai se n'esborren totes ni els `.partial`), sincronització `rsync`
+cap a `BACKUP_REMOTE` si està definit (sense `--delete`: el destí conserva
+l'historial) i un control final: falla si l'última còpia té més de
+`BACKUP_MAX_HOURS` hores. Si qualsevol pas falla, la unitat acaba en error
+(`systemctl --failed`). Totes les claus són opcionals i van al `.env`
+(`deploy/server.env.example`).
+
+Cal que `BACKUP_REMOTE` apunti fora d'aquest servidor i que l'usuari root
+hi tingui accés per clau SSH (`ssh-copy-id`, sense contrasenya). Les còpies ja
+van xifrades amb `age`, així que el destí no necessita ser de confiança.
+Per a monitoratge, `python3 scripts/backup_tools.py check --dir
+/docker/ssh/backups --max-hours 36` surt amb error si no hi ha còpia recent.
+
+**La clau privada `age` no ha de ser al servidor** (ni a `clau-privada.txt` del
+clon). Guarda-la en un gestor de secrets o fora de línia, prova de desxifrar-hi
+una còpia (vegeu «Restauració») i només després esborra-la del servidor.
 
 La còpia no inclou el servidor remot, les sessions tmux, els fitxers SFTP
 remots ni els certificats/configuració de Nginx/Traefik. Aquests elements

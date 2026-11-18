@@ -24,6 +24,10 @@ DEFAULTS = {
     "SSH_PORT": "22",
     "TZ": "Europe/Madrid",
     "REQUIRE_MFA": "true",
+    # Còpies programades (scripts/backup-run.sh, install-backup-timer.sh); no formen part de config.json.
+    "BACKUP_KEEP": "30",
+    "BACKUP_TIME": "03:30",
+    "BACKUP_MAX_HOURS": "36",
 }
 
 
