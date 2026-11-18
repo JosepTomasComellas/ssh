@@ -1,0 +1,11 @@
+[Unit]
+Description=Web SSH Terminal: còpia xifrada diària
+
+[Timer]
+OnCalendar=*-*-* @WHEN@:00
+# Si el servidor estava apagat a l'hora prevista, fa la còpia en arrencar.
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
